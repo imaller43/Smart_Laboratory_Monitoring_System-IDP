@@ -6,14 +6,14 @@
 
 | # | Section | Owner | Status |
 |---|---------|-------|--------|
-| 1 | Project Proposal (Title, Details, Course) | All Members | ✅ Managed by leader |
-| 2 | Project Summary | TBD | ⬜ Pending |
-| 3 | Problem Statement & Objective | TBD | ⬜ Pending |
-| 4 | Scope of Work & Project Methodology | TBD | ⬜ Pending |
-| 5 | Expected Outcome | TBD | ⬜ Pending |
-| 6 | References | TBD | ⬜ Pending |
-| 7 | Project Organisation Chart | TBD | ⬜ Pending |
-| 8 | Project Planning (Gantt Chart) | TBD | ⬜ Pending |
+Project Proposal (Title, Details, Course) | All Members | ✅ Managed by leader |
+Project Summary 
+Problem Statement & Objective  
+Scope of Work & Project Methodology 
+Expected Outcome 
+References 
+Project Organisation Chart 
+Project Planning (Gantt Chart)
 
 ---
 
