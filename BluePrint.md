@@ -18,7 +18,8 @@ Laboratories containing chemicals, specialized equipment, and hazardous material
 ## 4. Hardware Architecture & Budget (Pro-Tier Setup)
 
 **Microcontroller:**
-*   **ESP32 WROOM-32 DevKit (38-pin, Type-C) (~RM 25):** The dual-core brain of the system, handling I2C sensors, LittleFS storage, and Wi-Fi communication simultaneously.
+*   **ESP32 ESP32-S3-N16R8 (38-pin, Type-C) (~RM 25):** The dual-core brain of the system, handling I2C sensors, LittleFS storage, and Wi-Fi communication simultaneously. **For Data Logger
+*   **ESP32 Super Mini:** For LoRa Gateway to receive the alert from Main ESP32-S3 and forward it to the cloud when WiFi is not avaiable (Backup Plan)
 
 **Input Sensors (Digital I2C & UART):**
 *   **SGP30 or CCS811 Sensor (~RM 55):** Factory-calibrated digital sensor for highly accurate TVOC (Toxic Gas) and eCO2 readings without analog noise.
@@ -27,7 +28,7 @@ Laboratories containing chemicals, specialized equipment, and hazardous material
 *   **IR Flame Sensor (~RM 5):** Instant optical detection of an active fire.
 
 **Output, Actuators & Communications:**
-*   **LoRa Communication Module (e.g., SX1278) (~RM 15):** Acts as an independent radio-frequency fallback to transmit emergency payloads to a secondary gateway if the primary lab Wi-Fi fails.
+*   **2 x LoRa Communication Module (e.g., SX1278) (~RM 30):** Acts as an independent radio-frequency fallback to transmit emergency payloads to a secondary gateway if the primary lab Wi-Fi fails.
 *   **2-Channel 5V Relay Module (~RM 12):** Controls higher-power devices (like the Exhaust Fan).
 *   **Small 5V DC Exhaust Fan (~RM 10):** Used to simulate emergency ventilation (clearing gas leaks).
 *   **Active Buzzer (~RM 5):** The loud physical siren for evacuation alerts.
@@ -97,3 +98,58 @@ This system utilizes a highly scalable, decoupled microservices approach:
 4.  **Frontend/UI Developer:** 
     *   Designing the interactive web dashboard (React/Vue or Any other frameworks).
     *   Deploying the dashboard to Netlify and connecting it to the Node-RED API.
+
+## 8. Power Architecture & Delivery (Multi-Rail Setup)
+
+To prevent the ESP32-S3 from crashing or entering a brownout reset loop during a State 3 emergency, the hardware relies on a highly decoupled "Multi-Rail" power architecture to safely distribute heavy current loads. 
+
+**1. Main Power Supply & Step-Down**
+*   The system is powered by an external 12V 2A power adapter.
+*   This input routes directly into an **LM2596S Step-Down Converter**, manually tuned to output exactly **5.0V**.
+*   This 5.0V output connects to the **VIN / 5V pin** on the ESP32-S3 to power the microcontroller itself.
+
+**2. High-Power 5.0V Rail (External)**
+The following high-current components pull their VCC/5V power directly from the LM2596S converter, bypassing the ESP32-S3's onboard regulator entirely:
+*   5V Ultrasonic Atomizer / Humidifier
+*   5V DC Exhaust Fan
+*   2-Channel Relay Module (VCC/JD-VCC pins)
+*   ARGB WS2812B LED Module
+*   HLK-LD2410 mmWave Radar (Requires stable 5V for reliable detection)
+
+**3. Dedicated LoRa 3.3V Rail (Hardware Fallback Stability)**
+To ensure peak radio transmission spikes do not overload the microcontroller, the LoRa module runs on its own isolated power supply:
+*   A tiny **AMS1117-3.3V Step-Down Module** takes input from the 5.0V rail and outputs 3.3V strictly to the **LoRa SX1278 VCC pin**.
+
+**4. Low-Power 3.3V Logic Rail (Internal)**
+The ESP32-S3's internal 3.3V pin is reserved strictly for lightweight, low-current digital sensors:
+*   BME280 Sensor
+*   SGP30 or CCS811 Sensor
+*   0.96" I2C OLED Display
+*   IR Flame Sensor
+
+**5. Common Ground (Critical Requirement)**
+To ensure digital logic signals (I2C, SPI, UART, HIGH/LOW triggers) pass successfully between the ESP32-S3 and the external components, all system grounds (ESP32-S3 GND, LM2596S GND, AMS1117 GND, and Sensor GNDs) must be physically tied together into a single common ground.
+
+---
+
+## 9. ESP32-S3 GPIO Pinout Configuration
+
+The system utilizes the ESP32-S3's flexible GPIO matrix. The mapping below strategically avoids all system-reserved "strapping pins" (GPIO 0, 3, 45, 46) to guarantee safe booting and reliable hardware execution.
+
+| Component / Function | Component Pin Name | ESP32-S3 GPIO | Notes & Safety Checks |
+| :--- | :--- | :--- | :--- |
+| **Shared I2C Bus** | SDA | **GPIO 8** | Connect BME280, SGP30, and OLED SDA here. |
+| (Sensors & Display) | SCL | **GPIO 9** | Connect BME280, SGP30, and OLED SCL here. |
+| **HLK-LD2410 Radar** | TX (Transmit) | **GPIO 18** | **Cross-wire:** Radar TX connects to ESP32 RX. |
+| (UART Serial) | RX (Receive) | **GPIO 17** | **Cross-wire:** Radar RX connects to ESP32 TX. |
+| **LoRa SX1278** | SCK (Clock) | **GPIO 12** | Standard SPI clock. |
+| (SPI Bus) | MISO (Data In) | **GPIO 13** | Standard SPI data in. |
+| | MOSI (Data Out) | **GPIO 11** | Standard SPI data out. |
+| | CS / NSS (Chip Select)| **GPIO 10** | Tells the LoRa module to listen. |
+| | RST (Reset) | **GPIO 14** | Resets the LoRa module on boot. |
+| | DIO0 (Interrupt) | **GPIO 15** | Triggers the ESP32 when a radio packet arrives. |
+| **IR Flame Sensor** | D0 / OUT (Digital Out) | **GPIO 4** | Simple HIGH/LOW digital input. |
+| **Exhaust Fan Relay** | IN1 (Relay Channel 1) | **GPIO 5** | Triggers the 5V fan (State 1 & 2). |
+| **Atomizer Relay** | IN2 (Relay Channel 2) | **GPIO 6** | Triggers the water sprinkler (State 3). |
+| **Active Buzzer** | I/O or SIG | **GPIO 7** | Simple HIGH/LOW digital output. |
+| **ARGB LED (WS2812B)** | DIN (Data In) | **GPIO 21** | Uses the FastLED or Adafruit NeoPixel library. |
