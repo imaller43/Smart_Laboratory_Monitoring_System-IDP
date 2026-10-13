@@ -19,22 +19,24 @@ Laboratories containing chemicals, specialized equipment, and hazardous material
 
 **Microcontroller:**
 *   **ESP32 ESP32-S3-N16R8 (38-pin, Type-C) (~RM 25):** The dual-core brain of the system, handling I2C sensors, LittleFS storage, and Wi-Fi communication simultaneously. **For Data Logger
-*   **ESP32 Super Mini:** For LoRa Gateway to receive the alert from Main ESP32-S3 and forward it to the cloud when WiFi is not avaiable (Backup Plan)
+*   **ESP32 Super Mini (RM 10):** For LoRa Gateway to receive the alert from Main ESP32-S3 and forward it to the cloud when WiFi is not avaiable (Backup Plan)
 
 **Input Sensors (Digital I2C & UART):**
-*   **SGP30 or CCS811 Sensor (~RM 55):** Factory-calibrated digital sensor for highly accurate TVOC (Toxic Gas) and eCO2 readings without analog noise.
-*   **BME280 Sensor (~RM 25):** High-speed digital I2C sensor for Temperature, Humidity, and Pressure.
-*   **HLK-LD2410 mmWave Radar (~RM 25):** Advanced radar sensor to detect human micro-movements (presence/breathing) for off-hours security.
-*   **IR Flame Sensor (~RM 5):** Instant optical detection of an active fire.
+*   **SGP30 Sensor (RM 30):** Factory-calibrated digital sensor for highly accurate TVOC (Toxic Gas) and eCO2 readings without analog noise.
+*   **BME280 Sensor (RM 31):** High-speed digital I2C sensor for Temperature, Humidity, and Pressure.
+*   **HLK-LD2410 mmWave Radar (RM 26):** Advanced radar sensor to detect human micro-movements (presence/breathing) for off-hours security.
+*   **IR Flame Sensor (RM2):** Instant optical detection of an active fire.
 
 **Output, Actuators & Communications:**
-*   **2 x LoRa Communication Module (e.g., SX1278) (~RM 30):** Acts as an independent radio-frequency fallback to transmit emergency payloads to a secondary gateway if the primary lab Wi-Fi fails.
-*   **2-Channel 5V Relay Module (~RM 12):** Controls higher-power devices (like the Exhaust Fan).
+*   **2 x LoRa Communication Module (e.g., SX1278) (RM 26 each):** Acts as an independent radio-frequency fallback to transmit emergency payloads to a secondary gateway if the primary lab Wi-Fi fails.
+*   **2-Channel 5V Relay Module (RM 4):** Controls higher-power devices (like the Exhaust Fan).
 *   **Small 5V DC Exhaust Fan (~RM 10):** Used to simulate emergency ventilation (clearing gas leaks).
-*   **Active Buzzer (~RM 5):** The loud physical siren for evacuation alerts.
-*   **ARGB LED Module / WS2812B (~RM 10):** A smart, color-changing addressable LED for the presentation model. Uses only 1 data pin to show visual states (Green = Safe, Yellow = Warning, Red = Fire).
+*   **Active Buzzer (RM 3):** The loud physical siren for evacuation alerts.
+*   **ARGB LED Module / WS2812B (RM 20):** A smart, color-changing addressable LED for the presentation model. Uses only 1 data pin to show visual states (Green = Safe, Yellow = Warning, Red = Fire).
 *   **5V Ultrasonic Atomizer / Humidifier Module (~RM 10):** A creative and safe way to simulate an emergency "Water Sprinkler" system for the presentation diorama. Instead of spraying real water that could damage electronics, it generates a visible, safe cool mist when a fire is detected!
 *   **0.96" I2C OLED Display (~RM 15):** Mounted on the device to show live status.
+*   **LM2596S Step-Down Converter** : To convert 12V to 5V for the ESP32 and other components.
+*   **AMS1117-3.3V Step-Down Module** : To convert 5V to 3.3V for the LoRa module.
 
 *Estimated Hardware Total: ~RM 192 (Well within the RM 350 budget, leaving room for professional casing and power supplies).*
 
