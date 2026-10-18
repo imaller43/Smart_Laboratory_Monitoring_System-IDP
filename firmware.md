@@ -55,3 +55,28 @@ To prevent Telegram Bot API bans (spamming) during the 1-second emergency burst 
 *   **`RBE` Node (Report by Exception):** Acts as a critical spam-blocker. It stops the continuous 1Hz data stream, only allowing an alert to pass through to Telegram if the `state` value has *changed* (e.g., only sends one message the exact moment it transitions from Warning to Emergency).
 *   **`Function` Node (Message Formatting):** Executes JavaScript to parse the JSON (`temp`, `tvoc`, `state`) and concatenates it into a human-readable text string with contextual emergency emojis.
 *   **`Telegram Sender` Node:** Utilizes the `node-red-contrib-telegrambot` palette to receive the formatted string and push it securely to the designated Chat ID.
+
+## 8. File System (LittleFS) & Admin Dashboard
+The ESP32-S3 hosts an embedded Single Page Application (SPA) dashboard used strictly as an **Admin Maintenance Portal** (for Wi-Fi setup, sensor threshold adjustments, diagnostics, and OTA updates). This operates completely independently of the Node-RED live operator feed.
+
+### Memory Allocation & Web Server
+*   **Capacity:** Out of the available flash memory, ~1.5MB is partitioned for LittleFS. The static dashboard files (HTML, CSS, JS) are gzip-compressed (`index.html.gz`) to consume less than 100KB, leaving ample room for potential offline data logging.
+*   **Asynchronous Processing (`ESPAsyncWebServer`):** The web server runs exclusively on **Core 0**. It handles multiple client connections asynchronously, guaranteeing that HTTP requests never block or delay the Core 1 hardware safety interrupts.
+*   **AJAX & REST APIs:** The ESP32 does not build HTML dynamically. It serves the static files once, and the browser's JavaScript uses background AJAX requests to hit ESP32 REST API endpoints (e.g., `GET /api/health`, `GET /api/config`). The ESP32 responds with lightweight JSON (CPU temp, free heap, RSSI, active state) to populate the UI.
+
+### Non-Volatile Data Management
+Writing to flash memory briefly halts the CPU. To maintain industrial reliability, writes are strictly managed:
+*   **Dynamic Configuration (`config.json`):** Stores network credentials and safety thresholds. Parsed via `ArduinoJson` during `setup()`, eliminating hardcoded variables.
+*   **SGP30 Baseline (`baseline.txt`):** Prevents the 12-hour MOX sensor recalibration cycle on reboot. A low-priority Core 0 task saves the baseline once per hour. Hardware interrupts are briefly muted for ~10ms during this flash write to prevent ISR watchdog faults.
+
+### OTA Updates & Memory Persistence
+The flash memory utilizes a custom partition table separating application logic from stored data.
+*   **Data Persistence:** Web-based OTA updates only overwrite the Application partitions (`app0`/`app1`). The LittleFS Data partition remains completely untouched. Wi-Fi credentials, MQTT configs, and sensor baselines persist seamlessly across firmware updates.
+*   **Safety OTA Interlock:** The firmware enforces a strict HTTP 403 Forbidden block on the `/update` POST route if the system is in any state other than `STATE_NORMAL`. This guarantees the ESP32 cannot be rebooted or blinded by an administrator during an active chemical leak or fire.
+
+## 9. Firmware Updates & Memory Partitioning
+The ESP32 flash memory is governed by a custom partition table separating the application code from the non-volatile data.
+
+*   **OTA Updates:** Over-The-Air updates exclusively target the Application Partition (`app0`/`app1`). 
+*   **Data Persistence:** The LittleFS Data Partition remains completely untouched during standard OTA updates. The `config.json` (network credentials) and `baseline.txt` (sensor calibration) persist across firmware versions, allowing the device to instantly reconnect to the network upon reboot without administrator intervention.
+*   **OTA Interlock:** Web-based OTA updates are strictly rejected via a 403 HTTP status if the system is not in `STATE_NORMAL`, preventing system blindness during a safety incident.
