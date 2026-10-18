@@ -1,0 +1,210 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="AfEXz3d6rJ9eQvDhuscu">
+    <mxGraphModel dx="858" dy="468" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="46qJhx8oF9EfV0-seZKN-17" edge="1" parent="1" source="46qJhx8oF9EfV0-seZKN-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="46qJhx8oF9EfV0-seZKN-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="46qJhx8oF9EfV0-seZKN-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;b&gt;&lt;font face=&quot;Times New Roman&quot;&gt;SYSTEM INITIALIZATION:&lt;/font&gt;&lt;/b&gt;&lt;div&gt;&lt;font face=&quot;Times New Roman&quot;&gt;Initialize ESP32-S3, BME280, SGP30, HLK-LD2410, IR Flame, LoRa, OLED, WS281B LED, 2-Channel Relay, Active Buzzer, Humidifier and Exhaust Fan&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="270" x="36" y="172" as="geometry" />
+        </mxCell>
+        <mxCell id="46qJhx8oF9EfV0-seZKN-18" edge="1" parent="1" source="46qJhx8oF9EfV0-seZKN-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="46qJhx8oF9EfV0-seZKN-5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="46qJhx8oF9EfV0-seZKN-3" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;shapeInside=1;fixedSize=1;" value="&lt;font face=&quot;Times New Roman&quot;&gt;&lt;b&gt;DATA ACQUISITION:&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font face=&quot;Times New Roman&quot;&gt;Read sensor data (BME280: Temp/Hum/Press; SGP30: TVOC/eC02; HLK-LD2410, Radar, IR Flame)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="70" width="315" x="13.5" y="263" as="geometry" />
+        </mxCell>
+        <mxCell id="46qJhx8oF9EfV0-seZKN-16" edge="1" parent="1" source="46qJhx8oF9EfV0-seZKN-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="46qJhx8oF9EfV0-seZKN-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="46qJhx8oF9EfV0-seZKN-4" parent="1" style="ellipse;whiteSpace=wrap;html=1;shapeInside=1;" value="&lt;b&gt;&lt;font face=&quot;Times New Roman&quot;&gt;START&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="30" width="120" x="111" y="122" as="geometry" />
+        </mxCell>
+        <mxCell id="46qJhx8oF9EfV0-seZKN-19" edge="1" parent="1" source="46qJhx8oF9EfV0-seZKN-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="VslsjPmZ5IMAm8UlQErS-5">
+          <mxGeometry relative="1" x="0.6429" as="geometry">
+            <mxPoint x="170" y="440" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="46qJhx8oF9EfV0-seZKN-5" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;b&gt;&lt;font face=&quot;Times New Roman&quot;&gt;DATA PROCESSING &amp;amp; SENSOR FUSION:&lt;/font&gt;&lt;/b&gt;&lt;div&gt;&lt;font face=&quot;Times New Roman&quot;&gt;Apply edge thresholds; evaluate sensor data to prevent false alarm.&lt;/font&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="270" x="36" y="353" as="geometry" />
+        </mxCell>
+        <mxCell id="46qJhx8oF9EfV0-seZKN-20" edge="1" parent="1" source="46qJhx8oF9EfV0-seZKN-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="46qJhx8oF9EfV0-seZKN-8">
+          <mxGeometry relative="1" x="0.5862" as="geometry">
+            <mxPoint x="170" y="647" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="46qJhx8oF9EfV0-seZKN-23" edge="1" parent="1" source="46qJhx8oF9EfV0-seZKN-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="46qJhx8oF9EfV0-seZKN-9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="46qJhx8oF9EfV0-seZKN-6" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="&lt;b&gt;&lt;font face=&quot;Times New Roman&quot;&gt;Fire Detected?&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font face=&quot;Times New Roman&quot;&gt;(Flame==1 &amp;amp; Temp &amp;gt; 45°C)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="70" width="210" x="66" y="528" as="geometry" />
+        </mxCell>
+        <mxCell id="46qJhx8oF9EfV0-seZKN-22" edge="1" parent="1" source="46qJhx8oF9EfV0-seZKN-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="46qJhx8oF9EfV0-seZKN-12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="46qJhx8oF9EfV0-seZKN-25" edge="1" parent="1" source="46qJhx8oF9EfV0-seZKN-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="46qJhx8oF9EfV0-seZKN-11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="46qJhx8oF9EfV0-seZKN-7" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="&lt;b&gt;&lt;font face=&quot;Times New Roman&quot;&gt;Minor Gas Leak?&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font face=&quot;Times New Roman&quot;&gt;(TVOC &amp;gt; 500 ppb)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="70" width="210" x="66" y="712" as="geometry" />
+        </mxCell>
+        <mxCell id="46qJhx8oF9EfV0-seZKN-21" edge="1" parent="1" source="46qJhx8oF9EfV0-seZKN-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="46qJhx8oF9EfV0-seZKN-7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="46qJhx8oF9EfV0-seZKN-24" edge="1" parent="1" source="46qJhx8oF9EfV0-seZKN-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="46qJhx8oF9EfV0-seZKN-10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="46qJhx8oF9EfV0-seZKN-8" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="&lt;b&gt;&lt;font face=&quot;Times New Roman&quot;&gt;Severe Gas Leak?&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font face=&quot;Times New Roman&quot;&gt;(TVOC &amp;gt; 1500 ppb)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="70" width="210" x="66" y="620" as="geometry" />
+        </mxCell>
+        <mxCell id="VslsjPmZ5IMAm8UlQErS-20" edge="1" parent="1" source="46qJhx8oF9EfV0-seZKN-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="VslsjPmZ5IMAm8UlQErS-14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="46qJhx8oF9EfV0-seZKN-9" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;font face=&quot;Times New Roman&quot; style=&quot;&quot;&gt;&lt;b&gt;STATE 3: CONFIRMED FIRE (EMERGENCY)&lt;/b&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&amp;nbsp;- Action: Send Telegram Emergency Alert&lt;/span&gt;&lt;/div&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="70" width="160" x="321" y="528" as="geometry" />
+        </mxCell>
+        <mxCell id="VslsjPmZ5IMAm8UlQErS-21" edge="1" parent="1" source="46qJhx8oF9EfV0-seZKN-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="VslsjPmZ5IMAm8UlQErS-15">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="46qJhx8oF9EfV0-seZKN-10" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;font face=&quot;Times New Roman&quot; style=&quot;&quot;&gt;&lt;b&gt;STATE 2: SEVERE TOXIC LEAK (CRITICAL)&lt;/b&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&amp;nbsp;- Action: Send Telegram &lt;br&gt;Critical Alert&lt;/span&gt;&lt;/div&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="70" width="160" x="321" y="620" as="geometry" />
+        </mxCell>
+        <mxCell id="VslsjPmZ5IMAm8UlQErS-22" edge="1" parent="1" source="46qJhx8oF9EfV0-seZKN-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="VslsjPmZ5IMAm8UlQErS-16">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="46qJhx8oF9EfV0-seZKN-11" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;font face=&quot;Times New Roman&quot; style=&quot;&quot;&gt;&lt;b&gt;STATE 1: MINOR CHEMICAL LEAK (WARNING)&lt;/b&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&amp;nbsp;- Action: Send Telegram Warning Alert&lt;/span&gt;&lt;/div&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="80" width="160" x="321" y="707" as="geometry" />
+        </mxCell>
+        <mxCell id="46qJhx8oF9EfV0-seZKN-30" edge="1" parent="1" source="VslsjPmZ5IMAm8UlQErS-23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" target="46qJhx8oF9EfV0-seZKN-13">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="VslsjPmZ5IMAm8UlQErS-24" edge="1" parent="1" source="46qJhx8oF9EfV0-seZKN-12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="VslsjPmZ5IMAm8UlQErS-23">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="46qJhx8oF9EfV0-seZKN-12" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;font face=&quot;Times New Roman&quot; style=&quot;&quot;&gt;&lt;b&gt;STATE 0: NORMAL (SAFE)&lt;/b&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="48" width="160" x="91" y="804" as="geometry" />
+        </mxCell>
+        <mxCell id="46qJhx8oF9EfV0-seZKN-31" edge="1" parent="1" source="46qJhx8oF9EfV0-seZKN-13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="46qJhx8oF9EfV0-seZKN-15">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="46qJhx8oF9EfV0-seZKN-32" edge="1" parent="1" source="46qJhx8oF9EfV0-seZKN-13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="46qJhx8oF9EfV0-seZKN-14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="46qJhx8oF9EfV0-seZKN-13" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="&lt;font face=&quot;Times New Roman&quot;&gt;&lt;b&gt;Primary Wi-Fi Available?&lt;br&gt;&lt;/b&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="110" width="180" x="323" y="942" as="geometry" />
+        </mxCell>
+        <mxCell id="46qJhx8oF9EfV0-seZKN-34" edge="1" parent="1" source="46qJhx8oF9EfV0-seZKN-14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;">
+          <mxGeometry relative="1" x="-0.1441" as="geometry">
+            <Array as="points">
+              <mxPoint x="153.5" y="1070" />
+              <mxPoint x="810" y="1070" />
+            </Array>
+            <mxPoint x="810" y="997" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="46qJhx8oF9EfV0-seZKN-14" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;shapeInside=1;fixedSize=1;" value="&lt;font face=&quot;Times New Roman&quot;&gt;&lt;b&gt;TRANSMIT VIA WIFI:&lt;br&gt;&lt;/b&gt;&lt;/font&gt;&lt;font face=&quot;Times New Roman&quot;&gt;Upload telemetry/alerts directly to the cloud server (EMQX/NodeRED/InfluxDB) and trigger Telegram Alerts&lt;/font&gt;" vertex="1">
+          <mxGeometry height="70" width="260" x="23.5" y="962" as="geometry" />
+        </mxCell>
+        <mxCell id="46qJhx8oF9EfV0-seZKN-33" edge="1" parent="1" source="46qJhx8oF9EfV0-seZKN-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" target="46qJhx8oF9EfV0-seZKN-3">
+          <mxGeometry relative="1" x="-0.0323" as="geometry">
+            <Array as="points">
+              <mxPoint x="810" y="997" />
+              <mxPoint x="810" y="298" />
+            </Array>
+            <mxPoint x="710" y="980" as="sourcePoint" />
+            <mxPoint x="317.5" y="298.00000000000006" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="46qJhx8oF9EfV0-seZKN-15" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;shapeInside=1;fixedSize=1;" value="&lt;font face=&quot;Times New Roman&quot;&gt;&lt;b&gt;LoRa FALLBACK:&lt;br&gt;&lt;/b&gt;&lt;/font&gt;&lt;font face=&quot;Times New Roman&quot;&gt;Broadcast backup emergency payload to secondary ESP32 Super Mini gateway, which forwards to cloud server.&lt;/font&gt;" vertex="1">
+          <mxGeometry height="70" width="260" x="529" y="962" as="geometry" />
+        </mxCell>
+        <mxCell id="46qJhx8oF9EfV0-seZKN-35" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;font face=&quot;Times New Roman&quot;&gt;&lt;b&gt;YES&lt;/b&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="16" width="30" x="276" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="46qJhx8oF9EfV0-seZKN-36" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;font face=&quot;Times New Roman&quot;&gt;&lt;b&gt;NO&lt;/b&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="16" width="20" x="180" y="510" as="geometry" />
+        </mxCell>
+        <mxCell id="46qJhx8oF9EfV0-seZKN-39" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;font face=&quot;Times New Roman&quot;&gt;&lt;b&gt;NO&lt;/b&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="30" width="60" x="486" y="974" as="geometry" />
+        </mxCell>
+        <mxCell id="46qJhx8oF9EfV0-seZKN-40" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;font face=&quot;Times New Roman&quot;&gt;&lt;b&gt;YES&lt;/b&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="30" width="40" x="284" y="974" as="geometry" />
+        </mxCell>
+        <mxCell id="VslsjPmZ5IMAm8UlQErS-7" edge="1" parent="1" source="VslsjPmZ5IMAm8UlQErS-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="VslsjPmZ5IMAm8UlQErS-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="VslsjPmZ5IMAm8UlQErS-10" edge="1" parent="1" source="VslsjPmZ5IMAm8UlQErS-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="46qJhx8oF9EfV0-seZKN-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="VslsjPmZ5IMAm8UlQErS-5" parent="1" style="rhombus;whiteSpace=wrap;html=1;shapeInside=1;" value="&lt;b&gt;&lt;font face=&quot;Times New Roman&quot;&gt;Sensor Problem?&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font face=&quot;Times New Roman&quot;&gt;(Flame==1 &amp;amp; Temp &amp;lt; 45 °C)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="70" width="210" x="66" y="437" as="geometry" />
+        </mxCell>
+        <mxCell id="VslsjPmZ5IMAm8UlQErS-19" edge="1" parent="1" source="VslsjPmZ5IMAm8UlQErS-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="VslsjPmZ5IMAm8UlQErS-13">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="VslsjPmZ5IMAm8UlQErS-6" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;div style=&quot;&quot;&gt;&lt;b style=&quot;font-family: &amp;quot;Times New Roman&amp;quot;; background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;STATE 4: FALSE READING&lt;/b&gt;&lt;/div&gt;&lt;font face=&quot;Times New Roman&quot; style=&quot;&quot;&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- Action: Send Telegram &lt;br&gt;False Reading Alert&lt;/span&gt;&lt;/div&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="60" width="160" x="321" y="442" as="geometry" />
+        </mxCell>
+        <mxCell id="VslsjPmZ5IMAm8UlQErS-29" edge="1" parent="1" source="VslsjPmZ5IMAm8UlQErS-13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="46qJhx8oF9EfV0-seZKN-13">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="770" y="472" />
+              <mxPoint x="770" y="910" />
+              <mxPoint x="413" y="910" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="VslsjPmZ5IMAm8UlQErS-13" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;shapeInside=1;fixedSize=1;" value="&lt;div style=&quot;font-family: &amp;quot;Times New Roman&amp;quot;; text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- WS2812B: Flash Blue&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;font-family: &amp;quot;Times New Roman&amp;quot;; text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- Exhaust Fan: Off&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;font-family: &amp;quot;Times New Roman&amp;quot;; text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- Humidifier: Off&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;font-family: &amp;quot;Times New Roman&amp;quot;; text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- Active Buzzer: Off&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="160" x="539" y="437" as="geometry" />
+        </mxCell>
+        <mxCell id="VslsjPmZ5IMAm8UlQErS-30" edge="1" parent="1" source="VslsjPmZ5IMAm8UlQErS-14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="770" y="563" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="VslsjPmZ5IMAm8UlQErS-14" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;shapeInside=1;fixedSize=1;" value="&lt;div style=&quot;font-family: &amp;quot;Times New Roman&amp;quot;; text-align: left;&quot;&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- WS2812B: Flash Red&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- Exhaust Fan: Force Off&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- Humidifier: On&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- Active Buzzer: Continuous Sound&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="200" x="519" y="528" as="geometry" />
+        </mxCell>
+        <mxCell id="VslsjPmZ5IMAm8UlQErS-31" edge="1" parent="1" source="VslsjPmZ5IMAm8UlQErS-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="770.0000000000002" y="655" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="VslsjPmZ5IMAm8UlQErS-15" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;shapeInside=1;fixedSize=1;" value="&lt;div style=&quot;font-family: &amp;quot;Times New Roman&amp;quot;; text-align: left;&quot;&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- WS2812B: Flash Yellow&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- Exhaust Fan: Full Speed&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- Humidifier: Off&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- Active Buzzer: Beep 2x/1s&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="170" x="534" y="620" as="geometry" />
+        </mxCell>
+        <mxCell id="VslsjPmZ5IMAm8UlQErS-32" edge="1" parent="1" source="VslsjPmZ5IMAm8UlQErS-16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="770.0000000000002" y="747" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="VslsjPmZ5IMAm8UlQErS-16" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;shapeInside=1;fixedSize=1;" value="&lt;div style=&quot;font-family: &amp;quot;Times New Roman&amp;quot;; text-align: left;&quot;&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- WS2812B: Solid Yellow&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- Exhaust Fan: On (Low/Med)&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- Humidifier: Off&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- Active Buzzer: Beep 2x/2s&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="180" x="529" y="712" as="geometry" />
+        </mxCell>
+        <mxCell id="VslsjPmZ5IMAm8UlQErS-23" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;shapeInside=1;fixedSize=1;" value="&lt;div style=&quot;font-family: &amp;quot;Times New Roman&amp;quot;; text-align: left;&quot;&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- WS2812B: Solid Green&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- Exhaust Fan: Off&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- Humidifier: Off&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- Active Buzzer: Off&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="180" x="81" y="875" as="geometry" />
+        </mxCell>
+        <mxCell id="VslsjPmZ5IMAm8UlQErS-33" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;font face=&quot;Times New Roman&quot;&gt;&lt;b&gt;YES&lt;/b&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="16" width="30" x="276" y="544" as="geometry" />
+        </mxCell>
+        <mxCell id="VslsjPmZ5IMAm8UlQErS-34" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;font face=&quot;Times New Roman&quot;&gt;&lt;b&gt;NO&lt;/b&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="16" width="20" x="180" y="604" as="geometry" />
+        </mxCell>
+        <mxCell id="VslsjPmZ5IMAm8UlQErS-35" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;font face=&quot;Times New Roman&quot;&gt;&lt;b&gt;YES&lt;/b&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="16" width="30" x="276" y="636" as="geometry" />
+        </mxCell>
+        <mxCell id="VslsjPmZ5IMAm8UlQErS-36" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;font face=&quot;Times New Roman&quot;&gt;&lt;b&gt;NO&lt;/b&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="16" width="20" x="180" y="696" as="geometry" />
+        </mxCell>
+        <mxCell id="VslsjPmZ5IMAm8UlQErS-37" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;font face=&quot;Times New Roman&quot;&gt;&lt;b&gt;YES&lt;/b&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="16" width="30" x="276" y="728" as="geometry" />
+        </mxCell>
+        <mxCell id="VslsjPmZ5IMAm8UlQErS-38" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;font face=&quot;Times New Roman&quot;&gt;&lt;b&gt;NO&lt;/b&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="16" width="20" x="180" y="785" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

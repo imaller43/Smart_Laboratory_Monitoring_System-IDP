@@ -34,7 +34,7 @@ Laboratories containing chemicals, specialized equipment, and hazardous material
 *   **Active Buzzer (RM 3):** The loud physical siren for evacuation alerts.
 *   **ARGB LED Module / WS2812B (RM 20):** A smart, color-changing addressable LED for the presentation model. Uses only 1 data pin to show visual states (Green = Safe, Yellow = Warning, Red = Fire).
 *   **5V Ultrasonic Atomizer / Humidifier Module (~RM 10):** A creative and safe way to simulate an emergency "Water Sprinkler" system for the presentation diorama. Instead of spraying real water that could damage electronics, it generates a visible, safe cool mist when a fire is detected!
-*   **0.96" I2C OLED Display (~RM 15):** Mounted on the device to show live status.
+*   **1.3" I2C OLED Display (~RM 15):** Mounted on the device to show live status.
 *   **LM2596S Step-Down Converter** : To convert 12V to 5V for the ESP32 and other components.
 *   **AMS1117-3.3V Step-Down Module** : To convert 5V to 3.3V for the LoRa module.
 
@@ -140,18 +140,29 @@ The system utilizes the ESP32-S3's flexible GPIO matrix. The mapping below strat
 
 | Component / Function | Component Pin Name | ESP32-S3 GPIO | Notes & Safety Checks |
 | :--- | :--- | :--- | :--- |
-| **Shared I2C Bus** | SDA | **GPIO 8** | Connect BME280, SGP30, and OLED SDA here. |
-| (Sensors & Display) | SCL | **GPIO 9** | Connect BME280, SGP30, and OLED SCL here. |
-| **HLK-LD2410 Radar** | TX (Transmit) | **GPIO 18** | **Cross-wire:** Radar TX connects to ESP32 RX. |
-| (UART Serial) | RX (Receive) | **GPIO 17** | **Cross-wire:** Radar RX connects to ESP32 TX. |
-| **LoRa SX1278** | SCK (Clock) | **GPIO 12** | Standard SPI clock. |
-| (SPI Bus) | MISO (Data In) | **GPIO 13** | Standard SPI data in. |
-| | MOSI (Data Out) | **GPIO 11** | Standard SPI data out. |
-| | CS / NSS (Chip Select)| **GPIO 10** | Tells the LoRa module to listen. |
-| | RST (Reset) | **GPIO 14** | Resets the LoRa module on boot. |
-| | DIO0 (Interrupt) | **GPIO 15** | Triggers the ESP32 when a radio packet arrives. |
-| **IR Flame Sensor** | D0 / OUT (Digital Out) | **GPIO 4** | Simple HIGH/LOW digital input. |
-| **Exhaust Fan Relay** | IN1 (Relay Channel 1) | **GPIO 5** | Triggers the 5V fan (State 1 & 2). |
-| **Atomizer Relay** | IN2 (Relay Channel 2) | **GPIO 6** | Triggers the water sprinkler (State 3). |
-| **Active Buzzer** | I/O or SIG | **GPIO 7** | Simple HIGH/LOW digital output. |
-| **ARGB LED (WS2812B)** | DIN (Data In) | **GPIO 21** | Uses the FastLED or Adafruit NeoPixel library. |
+| **Shared I2C Bus** | SDA | **GPIO 8(PIN 18)** | Connect BME280, SGP30, and OLED SDA here. |
+| (Sensors & Display) | SCL | **GPIO 9(PIN 46)** | Connect BME280, SGP30, and OLED SCL here. |
+| **HLK-LD2410 Radar** | TX (Transmit) | **GPIO 18(PIN 17)** | **Cross-wire:** Radar TX connects to ESP32 RX. |
+| (UART Serial) | RX (Receive) | **GPIO 17(PIN 16)** | **Cross-wire:** Radar RX connects to ESP32 TX. |
+| **LoRa SX1278** | SCK (Clock) | **GPIO 12(PIN 11)** | Standard SPI clock. |
+| (SPI Bus) | MISO (Data In) | **GPIO 13(PIN 12)** | Standard SPI data in. |
+| | MOSI (Data Out) | **GPIO 11(PIN 10)** | Standard SPI data out. |
+| | CS / NSS (Chip Select)| **GPIO 10(PIN 9)** | Tells the LoRa module to listen. |
+| | RST (Reset) | **GPIO 14(PIN 13)** | Resets the LoRa module on boot. |
+| | DIO0 (Interrupt) | **GPIO 15(PIN 7)** | Triggers the ESP32 when a radio packet arrives. |
+| **IR Flame Sensor** | D0 / OUT (Digital Out) | **GPIO 4(PIN RST)** | Simple HIGH/LOW digital input. |
+| **Exhaust Fan Relay** | IN1 (Relay Channel 1) | **GPIO 5(PIN 4)** | Triggers the 5V fan (State 1 & 2). |
+| **Atomizer Relay** | IN2 (Relay Channel 2) | **GPIO 6(PIN 5)** | Triggers the water sprinkler (State 3). |
+| **Active Buzzer** | I/O or SIG | **GPIO 7(PIN 6)** | Simple HIGH/LOW digital output. |
+| **ARGB LED (WS2812B)** | DIN (Data In) | **GPIO 21(PIN 47)** | Uses the FastLED or Adafruit NeoPixel library. |
+
+| Component / Function | LoRa Pin | ESP32 Super Mini | Notes & Wiring Instructions |
+| :--- | :--- | :--- | :--- |
+| **LoRa SX1278** | SCK (Clock) | **GPIO 4(PIN RST)** | Standard SPI clock. |
+| (SPI Bus) | MISO (Data In) | **GPIO 5(PIN 5)** | Standard SPI data in. |
+| | MOSI (Data Out) | **GPIO 6(PIN 6)** | Standard SPI data out. |
+| | CS / NSS (Chip Select)| **GPIO 7(PIN 7)** | Tells the LoRa module to listen. |
+| | RST (Reset) | **GPIO 3(PIN 3)** | Resets the LoRa module on boot. |
+| | DIO0 (Interrupt) | **GPIO 10(PIN 10)** | Triggers the Super Mini when an alert arrives. |
+| **Power** | VCC | **3.3V Pin** | Safe to use Super Mini 3.3V (Gateway is RX only). |
+| | GND | **GND Pin** | Shared common ground. |
