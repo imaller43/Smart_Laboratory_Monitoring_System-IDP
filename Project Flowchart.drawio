@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net">
   <diagram name="Page-1" id="AfEXz3d6rJ9eQvDhuscu">
-    <mxGraphModel dx="858" dy="468" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1493" dy="813" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -62,19 +62,19 @@
         <mxCell id="VslsjPmZ5IMAm8UlQErS-20" edge="1" parent="1" source="46qJhx8oF9EfV0-seZKN-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="VslsjPmZ5IMAm8UlQErS-14">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="46qJhx8oF9EfV0-seZKN-9" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;font face=&quot;Times New Roman&quot; style=&quot;&quot;&gt;&lt;b&gt;STATE 3: CONFIRMED FIRE (EMERGENCY)&lt;/b&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&amp;nbsp;- Action: Send Telegram Emergency Alert&lt;/span&gt;&lt;/div&gt;&lt;/font&gt;" vertex="1">
+        <mxCell id="46qJhx8oF9EfV0-seZKN-9" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;font face=&quot;Times New Roman&quot; style=&quot;&quot;&gt;&lt;b&gt;STATE 3: CONFIRMED FIRE (EMERGENCY)&lt;/b&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&amp;nbsp;- Action: Queue MQTT for Emergency Alert&lt;/span&gt;&lt;/div&gt;&lt;/font&gt;" vertex="1">
           <mxGeometry height="70" width="160" x="321" y="528" as="geometry" />
         </mxCell>
         <mxCell id="VslsjPmZ5IMAm8UlQErS-21" edge="1" parent="1" source="46qJhx8oF9EfV0-seZKN-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="VslsjPmZ5IMAm8UlQErS-15">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="46qJhx8oF9EfV0-seZKN-10" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;font face=&quot;Times New Roman&quot; style=&quot;&quot;&gt;&lt;b&gt;STATE 2: SEVERE TOXIC LEAK (CRITICAL)&lt;/b&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&amp;nbsp;- Action: Send Telegram &lt;br&gt;Critical Alert&lt;/span&gt;&lt;/div&gt;&lt;/font&gt;" vertex="1">
+        <mxCell id="46qJhx8oF9EfV0-seZKN-10" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;font face=&quot;Times New Roman&quot; style=&quot;&quot;&gt;&lt;b&gt;STATE 2: SEVERE TOXIC LEAK (CRITICAL)&lt;/b&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&amp;nbsp;- Action: Queue MQTT for&lt;br&gt;Critical Alert&lt;/span&gt;&lt;/div&gt;&lt;/font&gt;" vertex="1">
           <mxGeometry height="70" width="160" x="321" y="620" as="geometry" />
         </mxCell>
         <mxCell id="VslsjPmZ5IMAm8UlQErS-22" edge="1" parent="1" source="46qJhx8oF9EfV0-seZKN-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="VslsjPmZ5IMAm8UlQErS-16">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="46qJhx8oF9EfV0-seZKN-11" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;font face=&quot;Times New Roman&quot; style=&quot;&quot;&gt;&lt;b&gt;STATE 1: MINOR CHEMICAL LEAK (WARNING)&lt;/b&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&amp;nbsp;- Action: Send Telegram Warning Alert&lt;/span&gt;&lt;/div&gt;&lt;/font&gt;" vertex="1">
+        <mxCell id="46qJhx8oF9EfV0-seZKN-11" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;font face=&quot;Times New Roman&quot; style=&quot;&quot;&gt;&lt;b&gt;STATE 1: MINOR CHEMICAL LEAK (WARNING)&lt;/b&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&amp;nbsp;- Action: Queue MQTT for Warning Alert&lt;/span&gt;&lt;/div&gt;&lt;/font&gt;" vertex="1">
           <mxGeometry height="80" width="160" x="321" y="707" as="geometry" />
         </mxCell>
         <mxCell id="46qJhx8oF9EfV0-seZKN-30" edge="1" parent="1" source="VslsjPmZ5IMAm8UlQErS-23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" target="46qJhx8oF9EfV0-seZKN-13">
@@ -144,7 +144,7 @@
         <mxCell id="VslsjPmZ5IMAm8UlQErS-19" edge="1" parent="1" source="VslsjPmZ5IMAm8UlQErS-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="VslsjPmZ5IMAm8UlQErS-13">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="VslsjPmZ5IMAm8UlQErS-6" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;div style=&quot;&quot;&gt;&lt;b style=&quot;font-family: &amp;quot;Times New Roman&amp;quot;; background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;STATE 4: FALSE READING&lt;/b&gt;&lt;/div&gt;&lt;font face=&quot;Times New Roman&quot; style=&quot;&quot;&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- Action: Send Telegram &lt;br&gt;False Reading Alert&lt;/span&gt;&lt;/div&gt;&lt;/font&gt;" vertex="1">
+        <mxCell id="VslsjPmZ5IMAm8UlQErS-6" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;div style=&quot;&quot;&gt;&lt;b style=&quot;font-family: &amp;quot;Times New Roman&amp;quot;; background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;STATE 4: FALSE READING&lt;/b&gt;&lt;/div&gt;&lt;font face=&quot;Times New Roman&quot; style=&quot;&quot;&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;- Action: Queue MQTT for&lt;br&gt;False Reading Alert&lt;/span&gt;&lt;/div&gt;&lt;/font&gt;" vertex="1">
           <mxGeometry height="60" width="160" x="321" y="442" as="geometry" />
         </mxCell>
         <mxCell id="VslsjPmZ5IMAm8UlQErS-29" edge="1" parent="1" source="VslsjPmZ5IMAm8UlQErS-13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="46qJhx8oF9EfV0-seZKN-13">

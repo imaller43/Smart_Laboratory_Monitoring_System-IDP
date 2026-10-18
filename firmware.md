@@ -47,3 +47,11 @@ The firmware does not use absolute time (RTC). It uses relative uptime (`millis(
 The JSON payload published by the ESP32 is managed by Node-RED using a Split-Routing strategy:
 *   **Path 1 (WebSockets):** All incoming data is routed directly to the frontend dashboard for 1Hz real-time updates during an emergency.
 *   **Path 2 (InfluxDB):** Data routed to the database passes through a Rate Limiting node (max 1 message per 10 seconds) to prevent TSDB disk bloat during burst mode.
+
+## 7. Telegram Alerting & Rate Limiting (Node-RED)
+To prevent Telegram Bot API bans (spamming) during the 1-second emergency burst mode, Node-RED handles alerts through a strict routing and throttling sequence:
+
+*   **`Switch` Node (Logic Routing):** Evaluates `msg.payload.state`. Drops State 0 (Normal) to prevent unnecessary processing, and routes States 1, 2, 3, and 4 to their respective alert paths.
+*   **`RBE` Node (Report by Exception):** Acts as a critical spam-blocker. It stops the continuous 1Hz data stream, only allowing an alert to pass through to Telegram if the `state` value has *changed* (e.g., only sends one message the exact moment it transitions from Warning to Emergency).
+*   **`Function` Node (Message Formatting):** Executes JavaScript to parse the JSON (`temp`, `tvoc`, `state`) and concatenates it into a human-readable text string with contextual emergency emojis.
+*   **`Telegram Sender` Node:** Utilizes the `node-red-contrib-telegrambot` palette to receive the formatted string and push it securely to the designated Chat ID.
