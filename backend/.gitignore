@@ -1,0 +1,32 @@
+# Environment variables & secrets (Telegram Bot Token, DB passwords, MQTT credentials)
+.env
+.env.*
+!.env.example
+
+# Docker persistent volumes & runtime data
+data/
+volumes/
+mosquitto/data/
+mosquitto/log/
+emqx/data/
+emqx/log/
+influxdb/
+mysql/
+
+# Node-RED runtime modules & secret credentials (commit flows.json, NOT flows_cred.json)
+nodered/node_modules/
+nodered/.config*.json
+nodered/flows_cred.json
+*.backup
+
+# Node.js / Python helper scripts (if used)
+node_modules/
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# Local databases & logs
+*.db
+*.sqlite
+*.log

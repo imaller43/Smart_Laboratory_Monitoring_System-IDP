@@ -1,0 +1,20 @@
+# PlatformIO
+.pio/
+.pioenvs/
+.piolibdeps/
+.clangd/
+compile_commands.json
+
+# Arduino IDE / ESP32 build artifacts
+build/
+*.bin
+*.elf
+*.map
+*.hex
+
+# Firmware secrets & local Wi-Fi/MQTT credentials (commit example templates instead)
+secrets.h
+include/secrets.h
+src/secrets.h
+data/config.json
+!data/config.example.json

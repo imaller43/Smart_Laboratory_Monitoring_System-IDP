@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Production builds & Vite cache
+dist/
+build/
+out/
+.vite/
+
+# Netlify local CLI state
+.netlify/
+
+# Local environment variables
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Logs & caches
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+*.tsbuildinfo
+.eslintcache

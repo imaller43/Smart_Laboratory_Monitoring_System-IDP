@@ -1,0 +1,127 @@
+<mxfile host="Electron" type="device">
+  <diagram id="backend-flow-sync" name="Node-RED Backend Logic">
+    <mxGraphModel dx="1000" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Nodes -->
+        <mxCell id="start" value="START" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="360" y="40" width="100" height="40" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="mqtt" value="Subscribe to EMQX&lt;br&gt;MQTT Topic" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" vertex="1" parent="1">
+          <mxGeometry x="330" y="120" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="parse" value="Parse incoming JSON Payload&lt;br&gt;(Temp, TVOC, State, etc.)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="320" y="220" width="180" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Sync Bar -->
+        <mxCell id="sync_bar" value="" style="html=1;shape=rect;fillColor=#000000;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="200" y="320" width="420" height="10" as="geometry" />
+        </mxCell>
+
+        <!-- Branch 1: Logging -->
+        <mxCell id="format_log" value="Format telemetry variables&lt;br&gt;for DB and Frontend" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="120" y="380" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="influx" value="Execute write to&lt;br&gt;InfluxDB" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" vertex="1" parent="1">
+          <mxGeometry x="120" y="480" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ws" value="Broadcast to Dashboard&lt;br&gt;via WebSockets" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" vertex="1" parent="1">
+          <mxGeometry x="120" y="580" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Branch 2: Alerts -->
+        <mxCell id="check_state" value="system_state &amp;gt; 0?" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="540" y="370" width="140" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="end_no" value="END" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="740" y="390" width="80" height="40" as="geometry" />
+        </mxCell>
+
+        <mxCell id="construct_alert" value="Construct Alert Message&lt;br&gt;Payload (Match State)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="530" y="500" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="format_http" value="Format secure HTTP&lt;br&gt;API headers" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="530" y="600" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="telegram" value="Send POST request to&lt;br&gt;Telegram Bot API" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" vertex="1" parent="1">
+          <mxGeometry x="520" y="700" width="180" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="firebase" value="Send alert record&lt;br&gt;to Firebase" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" vertex="1" parent="1">
+          <mxGeometry x="520" y="800" width="180" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="end_yes" value="END" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="570" y="900" width="80" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Edges -->
+        <mxCell id="edge1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="start" target="mqtt">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="mqtt" target="parse">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Parse to Sync Bar -->
+        <mxCell id="edge_sync" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="parse" target="sync_bar">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Sync Bar to Branch 1 -->
+        <mxCell id="edge3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="sync_bar" target="format_log">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Sync Bar to Branch 2 -->
+        <mxCell id="edge4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="sync_bar" target="check_state">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="format_log" target="influx">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="influx" target="ws">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge7" value="NO" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="check_state" target="end_no">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge8" value="YES" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="check_state" target="construct_alert">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="construct_alert" target="format_http">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="format_http" target="telegram">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="telegram" target="firebase">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="edge12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="firebase" target="end_yes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
