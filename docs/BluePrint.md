@@ -140,21 +140,21 @@ The system utilizes the ESP32-S3's flexible GPIO matrix. The mapping below strat
 
 | Component / Function | Component Pin Name | ESP32-S3 GPIO | Notes & Safety Checks |
 | :--- | :--- | :--- | :--- |
-| **Shared I2C Bus** | SDA | **GPIO 8(PIN 18)** | Connect BME280, SGP30, and OLED SDA here. |
-| (Sensors & Display) | SCL | **GPIO 9(PIN 46)** | Connect BME280, SGP30, and OLED SCL here. |
-| **HLK-LD2410 Radar** | TX (Transmit) | **GPIO 18(PIN 17)** | **Cross-wire:** Radar TX connects to ESP32 RX. |
-| (UART Serial) | RX (Receive) | **GPIO 17(PIN 16)** | **Cross-wire:** Radar RX connects to ESP32 TX. |
-| **LoRa SX1278** | SCK (Clock) | **GPIO 12(PIN 11)** | Standard SPI clock. |
-| (SPI Bus) | MISO (Data In) | **GPIO 13(PIN 12)** | Standard SPI data in. |
-| | MOSI (Data Out) | **GPIO 11(PIN 10)** | Standard SPI data out. |
-| | CS / NSS (Chip Select)| **GPIO 10(PIN 9)** | Tells the LoRa module to listen. |
-| | RST (Reset) | **GPIO 14(PIN 13)** | Resets the LoRa module on boot. |
-| | DIO0 (Interrupt) | **GPIO 15(PIN 7)** | Triggers the ESP32 when a radio packet arrives. |
-| **IR Flame Sensor** | D0 / OUT (Digital Out) | **GPIO 4(PIN RST)** | Simple HIGH/LOW digital input. |
-| **Exhaust Fan Relay** | IN1 (Relay Channel 1) | **GPIO 5(PIN 4)** | Triggers the 5V fan (State 1 & 2). |
-| **Atomizer Relay** | IN2 (Relay Channel 2) | **GPIO 6(PIN 5)** | Triggers the water sprinkler (State 3). |
-| **Active Buzzer** | I/O or SIG | **GPIO 7(PIN 6)** | Simple HIGH/LOW digital output. |
-| **ARGB LED (WS2812B)** | DIN (Data In) | **GPIO 21(PIN 47)** | Uses the FastLED or Adafruit NeoPixel library. |
+| **Shared I2C Bus** | SDA | **GPIO 8(PIN 8)** | Connect BME280, SGP30, and OLED SDA here. |
+| (Sensors & Display) | SCL | **GPIO 9(PIN 9)** | Connect BME280, SGP30, and OLED SCL here. |
+| **HLK-LD2410 Radar** | TX (Transmit) | **GPIO 18(PIN 18)** | **Cross-wire:** Radar TX connects to ESP32 RX. |
+| (UART Serial) | RX (Receive) | **GPIO 17(PIN 17)** | **Cross-wire:** Radar RX connects to ESP32 TX. |
+| **LoRa SX1278** | SCK (Clock) | **GPIO 12(PIN 12)** | Standard SPI clock. |
+| (SPI Bus) | MISO (Data In) | **GPIO 13(PIN 13)** | Standard SPI data in. |
+| | MOSI (Data Out) | **GPIO 11(PIN 11)** | Standard SPI data out. |
+| | CS / NSS (Chip Select)| **GPIO 10(PIN 10)** | Tells the LoRa module to listen. |
+| | RST (Reset) | **GPIO 14(PIN 14)** | Resets the LoRa module on boot. |
+| | DIO0 (Interrupt) | **GPIO 15(PIN 15)** | Triggers the ESP32 when a radio packet arrives. |
+| **IR Flame Sensor** | D0 / OUT (Digital Out) | **GPIO 4(PIN 4)** | Simple HIGH/LOW digital input. |
+| **Exhaust Fan Relay** | IN1 (Relay Channel 1) | **GPIO 5(PIN 5)** | Triggers the 5V fan (State 1 & 2). |
+| **Atomizer Relay** | IN2 (Relay Channel 2) | **GPIO 6(PIN 6)** | Triggers the water sprinkler (State 3). |
+| **Active Buzzer** | I/O or SIG | **GPIO 7(PIN 7)** | Simple HIGH/LOW digital output. |
+| **ARGB LED (WS2812B)** | DIN (Data In) | **GPIO 21(PIN 21)** | Uses the FastLED or Adafruit NeoPixel library. |
 
 | Component / Function | LoRa Pin | ESP32 Super Mini | Notes & Wiring Instructions |
 | :--- | :--- | :--- | :--- |
