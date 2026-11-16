@@ -24,17 +24,17 @@ Laboratories containing chemicals, specialized equipment, and hazardous material
 **Input Sensors (Digital I2C & UART):**
 *   **SGP30 Sensor (RM 30):** Factory-calibrated digital sensor for highly accurate TVOC (Toxic Gas) and eCO2 readings without analog noise.
 *   **BME280 Sensor (RM 31):** High-speed digital I2C sensor for Temperature, Humidity, and Pressure.
-*   **HLK-LD2410 mmWave Radar (RM 26):** Advanced radar sensor to detect human micro-movements (presence/breathing) for off-hours security.
+*   **HLK-LD2410C mmWave Radar (RM 26):** Advanced 24GHz radar sensor (2.54mm pin pitch variant) to detect human micro-movements (presence/breathing) and target distance for off-hours security.
 *   **IR Flame Sensor (RM2):** Instant optical detection of an active fire.
 
 **Output, Actuators & Communications:**
-*   **2 x LoRa Communication Module (e.g., SX1278) (RM 26 each):** Acts as an independent radio-frequency fallback to transmit emergency payloads to a secondary gateway if the primary lab Wi-Fi fails.
+*   **2 x LoRa Communication Module (SX1278 433 MHz) (RM 26 each):** Acts as an independent radio-frequency fallback to transmit emergency payloads to a secondary gateway if the primary lab Wi-Fi fails.
 *   **2-Channel 5V Relay Module (RM 4):** Controls higher-power devices (like the Exhaust Fan).
 *   **Small 5V DC Exhaust Fan (~RM 10):** Used to simulate emergency ventilation (clearing gas leaks).
 *   **Active Buzzer (RM 3):** The loud physical siren for evacuation alerts.
 *   **ARGB LED Module / WS2812B (RM 20):** A smart, color-changing addressable LED for the presentation model. Uses only 1 data pin to show visual states (Green = Safe, Yellow = Warning, Red = Fire).
 *   **5V Ultrasonic Atomizer / Humidifier Module (~RM 10):** A creative and safe way to simulate an emergency "Water Sprinkler" system for the presentation diorama. Instead of spraying real water that could damage electronics, it generates a visible, safe cool mist when a fire is detected!
-*   **1.3" I2C OLED Display (~RM 15):** Mounted on the device to show live status.
+*   **1.3" I2C OLED Display (SH1106 Driver) (~RM 15):** Mounted on the device to show live environmental status, safety state, and radar presence/distance.
 *   **LM2596S Step-Down Converter** : To convert 12V to 5V for the ESP32 and other components.
 *   **AMS1117-3.3V Step-Down Module** : To convert 5V to 3.3V for the LoRa module.
 
@@ -107,7 +107,7 @@ To prevent the ESP32-S3 from crashing or entering a brownout reset loop during a
 
 **1. Main Power Supply & Step-Down**
 *   The system is powered by an external 12V 2A power adapter.
-*   This input routes directly into an **LM2596S Step-Down Converter**, manually tuned to output exactly **5.0V**.
+*   This input routes directly into an **LM2596S Step-Down Converter**, manually tuned to **5.10V** (unloaded) to compensate for voltage droop under load.
 *   This 5.0V output connects to the **VIN / 5V pin** on the ESP32-S3 to power the microcontroller itself.
 
 **2. High-Power 5.0V Rail (External)**
@@ -125,8 +125,8 @@ To ensure peak radio transmission spikes do not overload the microcontroller, th
 **4. Low-Power 3.3V Logic Rail (Internal)**
 The ESP32-S3's internal 3.3V pin is reserved strictly for lightweight, low-current digital sensors:
 *   BME280 Sensor
-*   SGP30 or CCS811 Sensor
-*   0.96" I2C OLED Display
+*   SGP30 Sensor
+*   1.3" I2C OLED Display (SH1106)
 *   IR Flame Sensor
 
 **5. Common Ground (Critical Requirement)**
@@ -158,7 +158,7 @@ The system utilizes the ESP32-S3's flexible GPIO matrix. The mapping below strat
 
 | Component / Function | LoRa Pin | ESP32 Super Mini | Notes & Wiring Instructions |
 | :--- | :--- | :--- | :--- |
-| **LoRa SX1278** | SCK (Clock) | **GPIO 4(PIN RST)** | Standard SPI clock. |
+| **LoRa SX1278** | SCK (Clock) | **GPIO 4(PIN 4)** | Standard SPI clock. |
 | (SPI Bus) | MISO (Data In) | **GPIO 5(PIN 5)** | Standard SPI data in. |
 | | MOSI (Data Out) | **GPIO 6(PIN 6)** | Standard SPI data out. |
 | | CS / NSS (Chip Select)| **GPIO 7(PIN 7)** | Tells the LoRa module to listen. |

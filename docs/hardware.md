@@ -31,7 +31,7 @@ The primary sensor and actuator hub for the laboratory.
 * **OLED Display:** 4-pin I2C module.
 
 ### UART & Digital Sensors
-* **HLK-LD2410 Radar:** RX (GPIO 18), TX (GPIO 17). 5V powered.
+* **HLK-LD2410C Radar:** RX (GPIO 18), TX (GPIO 17). 5V powered (standard 2.54mm header pins).
 
 * **IR Flame Sensor:** DO connected to GPIO 4. Powered by 3.3V (via AMS1117) to ensure safe 3.3V logic output to the ESP32.
 

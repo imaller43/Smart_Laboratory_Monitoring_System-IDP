@@ -1,24 +1,27 @@
 # IDP Firmware Architecture: Lab Safety Monitoring System
-**Hardware:** ESP32-S3 (Main Node) & ESP32 Super Mini (Gateway)
+**Hardware:** ESP32-S3-N16R8 (Main Node) & ESP32 Super Mini (Gateway)
 **OS:** FreeRTOS (Dual-Core Implementation)
+**Toolchain:** Arduino IDE 2.3.11 (`esp32` by Espressif Systems v3.x, `16MB Flash`, `OPI PSRAM`, `Custom` Partition Scheme + `arduino-littlefs-upload` plugin)
 
 ## 1. FreeRTOS Core Allocation & Multithreading
 To ensure zero-latency emergency response, the firmware strictly separates hardware actuation from network transmission.
 
 *   **Core 1: Hardware & Logic (High Priority)**
     *   **Hardware Interrupt (ISR):** Attached to the IR Flame Sensor (GPIO 4). Triggers instantly upon flame detection.
-    *   **Sensor Task:** Polls BME280 and SGP30 via I2C exactly every 1000ms. Maintains a Running Sum/Count for averaging (does not use arrays to save RAM).
+    *   **Sensor & Display Task:** Polls BME280 and SGP30 via I2C (`GPIO 8` SDA, `GPIO 9` SCL) every 1000ms, reads human presence and target distance (`cm`) from the HLK-LD2410 mmWave radar via `HardwareSerial(1)` (`256000` baud on RX `GPIO 18`, TX `GPIO 17`), and updates the **1.3" SH1106 I2C OLED Display** with live readings, system state, and presence/distance. Maintains a Running Sum/Count for averaging (does not use arrays to save RAM).
     *   **State Machine Task:** Evaluates sensor data against the safety thresholds, triggers local GPIO actuators instantly, and passes payload data to Core 0.
 *   **Core 0: Network & Publishing (Lower Priority)**
-    *   **Network Task:** Waits for data from Core 1, formats it into JSON, and transmits via SPI to the LoRa SX1278 (or via Wi-Fi/MQTT).
+    *   **Network Task:** Waits for data from Core 1, formats it into JSON (including `temp`, `humidity`, `pressure`, `tvoc`, `eco2`, `flame`, `state`, `presence`, and `distance_cm`), and transmits via Wi-Fi/MQTT or falls back to SPI **433 MHz LoRa SX1278 (`433E6`)**.
 
 ## 2. Inter-Task Communication
-*   **Mutex (Shared Memory):** A global `SensorSnapshot` struct holds the latest temperature, TVOC, and flame status. The Mutex is locked briefly by the Sensor Task to update data, and by the State Machine to read it, preventing asynchronous data corruption.
+*   **Mutex (Shared Memory):** A global `SensorSnapshot` struct holds the latest temperature, humidity, pressure, TVOC, eCO2, flame status, radar `presence` (boolean), and radar target `distance_cm` (`uint16_t`). The Mutex is locked briefly by the Sensor Task to update data, and by the State Machine to read it, preventing asynchronous data corruption.
 *   **FreeRTOS Queue:** When a state changes or a publish interval is reached, Core 1 pushes a data packet into a Queue. Core 0 reads from this Queue to format the JSON and publish. This ensures network lag never blocks GPIO actuation.
 
-## 3. Sensor Polling & Data Handling
+## 3. Sensor Polling, Radar & Local OLED Display
 *   **SGP30 & BME280:** Strictly polled at **1Hz (every 1 second)** to maintain the SGP30 MOX heater baseline.
 *   **Averaging:** Temperature and TVOC use a continuous `sum` and `count` variable. Upon publishing during periodic modes, the sum is divided by the count, and variables reset to zero.
+*   **HLK-LD2410 mmWave Radar:** Continuously parsed over `HardwareSerial(1)` at `256000` baud. Extracts `presence` (`true`/`false`) and target `distance_cm`, which are included in every MQTT/LoRa JSON payload and shown on both the **1.3" SH1106 OLED Display** and the remote web dashboard.
+*   **1.3" SH1106 OLED Display (`U8g2`):** Displays live Temperature, Humidity, TVOC/eCO2, active Safety State (`0–4`), and Radar Presence + Target Distance (`cm`).
 
 ## 4. State Machine Logic
 *   **State 0 (Normal):** TVOC < 500 ppb AND Temp < 32°C AND Flame == 0
@@ -80,3 +83,42 @@ The ESP32 flash memory is governed by a custom partition table separating the ap
 *   **OTA Updates:** Over-The-Air updates exclusively target the Application Partition (`app0`/`app1`). 
 *   **Data Persistence:** The LittleFS Data Partition remains completely untouched during standard OTA updates. The `config.json` (network credentials) and `baseline.txt` (sensor calibration) persist across firmware versions, allowing the device to instantly reconnect to the network upon reboot without administrator intervention.
 *   **OTA Interlock:** Web-based OTA updates are strictly rejected via a 403 HTTP status if the system is not in `STATE_NORMAL`, preventing system blindness during a safety incident.
+
+## 10. Arduino IDE 2.3.11 Setup, Libraries & MQTT Payload Schema
+
+### Board Configuration (`ESP32-S3-N16R8`)
+*   **Board Package:** `esp32` by Espressif Systems (v3.x)
+*   **Board:** `ESP32S3 Dev Module`
+*   **Flash Size:** `16MB (128Mb)` (`QIO 80MHz`)
+*   **PSRAM:** `OPI PSRAM` (8 MB Octal PSRAM)
+*   **Partition Scheme:** `Custom` (uses `firmware/main_node/partitions.csv` with dual 4 MB OTA slots + 2 MB LittleFS)
+*   **Filesystem Uploader:** `arduino-littlefs-upload` VSIX plugin (`Ctrl + Shift + P` -> `Upload LittleFS to Pico/ESP8266/ESP32`)
+
+### Required Libraries
+| Subsystem | Library | Author / Maintainer | Notes |
+| :--- | :--- | :--- | :--- |
+| **BME280** | `Adafruit BME280 Library` | Adafruit | I2C (`0x76`/`0x77`) |
+| **SGP30** | `Adafruit SGP30 Sensor` | Adafruit | I2C (`0x58`), 1 Hz polling |
+| **1.3" OLED (SH1106)** | `U8g2` | olikraus | `U8G2_SH1106_128X64_NONAME_F_HW_I2C` (`0x3C`) |
+| **HLK-LD2410 Radar** | `MyLD2410` | Iavor Veltchev | `HardwareSerial(1)` at `256000` baud (`RX=18`, `TX=17`) |
+| **LoRa SX1278 (433 MHz)** | `LoRa` | Sandeep Mistry | `SPI.begin(12, 13, 11, 10)` + `LoRa.setPins(10, 14, 15)` at `433E6` |
+| **WS2812B ARGB LED** | `Adafruit NeoPixel` | Adafruit | Data on `GPIO 21` |
+| **Async Web Portal** | `ESPAsyncWebServer` + `AsyncTCP` | `ESP32Async` | Core 3.x compatible forks |
+| **JSON & MQTT** | `ArduinoJson` (v7.x) + `PubSubClient` | Benoit Blanchon / Nick O'Leary | `mqttClient.setBufferSize(512)` |
+
+### Telemetry JSON Schema (MQTT & LoRa Fallback)
+```json
+{
+  "node": "lab_main_s3",
+  "state": 0,
+  "temp": 26.4,
+  "humidity": 58.2,
+  "pressure": 1011.5,
+  "tvoc": 45,
+  "eco2": 412,
+  "flame": 0,
+  "presence": true,
+  "distance_cm": 124,
+  "uptime_s": 3600
+}
+```
