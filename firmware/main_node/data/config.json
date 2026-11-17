@@ -1,0 +1,12 @@
+{
+  "deviceName": "lab_main_s3",
+  "wifiSsid": "",
+  "wifiPass": "",
+  "mqttMode": "local",
+  "mqttProto": "tcp",
+  "mqttHost": "",
+  "mqttPort": 1883,
+  "mqttPath": "/mqtt",
+  "mqttUser": "",
+  "mqttPass": ""
+}

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IoT Configuration — Smart Laboratory Monitoring System</title>
+  <link rel="stylesheet" href="/style.css">
+  <script>
+    (function () {
+      if (localStorage.getItem('theme') === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
+</head>
+
+<body>
+
+  <nav class="topnav">
+    <a href="/" class="topnav-brand">Smart Laboratory Monitoring System</a>
+    <div class="topnav-links">
+      <a href="/" class="nav-link">Dashboard</a>
+      <a href="/iot" class="nav-link active">IoT Configuration</a>
+      <a href="/telegram" class="nav-link">Telegram</a>
+      <a href="/update" class="nav-link">System Update</a>
+    </div>
+    <div class="topnav-right">
+      <button type="button" class="theme-switch" id="themeToggle" title="Toggle Theme"></button>
+      <a href="/logout" class="btn-logout">Logout</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h1 style="margin-bottom:20px;">IoT Configuration</h1>
+
+    <form id="mqttForm">
+      <div class="iot-single-wrap">
+        <div class="iot-col-title">MQTT Broker Connection</div>
+
+        <!-- Status banner -->
+        <div class="mqtt-broker-section" style="margin-bottom:14px;">
+          <div class="mqtt-status-row">
+            <span class="mqtt-status-label">Active Broker:</span>
+            <span class="mqtt-status-ip" id="activeHost">--</span>
+            <span id="activeSummary" style="font-weight:normal;color:#888;font-size:12px;font-family:monospace;"></span>
+            <span class="mqtt-conn-badge" id="mqttConnBadge">&#9679; Checking&hellip;</span>
+          </div>
+        </div>
+
+        <div class="mqtt-broker-section">
+          <h3>Broker Settings</h3>
+
+          <div class="mqtt-field-row" style="margin-bottom:12px;">
+            <label for="deviceName">Device Name</label>
+            <input type="text" id="deviceName" placeholder="e.g. lab_main_s3" spellcheck="false" autocomplete="off">
+          </div>
+
+          <div style="margin-bottom:10px;">
+            <div style="font-size:12px;color:var(--text-main);font-weight:600;margin-bottom:7px;">Connection Mode</div>
+            <div class="mqtt-mode-group">
+              <button type="button" class="mqtt-mode-btn" id="btnLocal" onclick="setMode('local')">
+                Local Broker<br><small style="font-weight:400;font-size:11px;">Direct TCP / TLS</small>
+              </button>
+              <button type="button" class="mqtt-mode-btn" id="btnCloud" onclick="setMode('cloud')">
+                Cloud Broker<br><small style="font-weight:400;font-size:11px;">WebSocket / WSS</small>
+              </button>
+            </div>
+          </div>
+
+          <!-- Local settings -->
+          <div id="localBlock" class="mqtt-conn-block" style="display:none;">
+            <h4>Local Broker</h4>
+            <div class="mqtt-field-row">
+              <label>Protocol</label>
+              <select id="localProto" onchange="updateProtoNote()">
+                <option value="tcp">TCP (plain, port 1883)</option>
+                <option value="ssl">TLS/SSL (port 8883)</option>
+              </select>
+            </div>
+            <div class="mqtt-field-row">
+              <label>Broker IP</label>
+              <input type="text" id="localHost" placeholder="e.g. 192.168.1.100" spellcheck="false" autocomplete="off">
+            </div>
+            <div class="mqtt-field-row">
+              <label>Port</label>
+              <input type="number" id="localPort" min="1" max="65535" value="1883" style="max-width:100px;">
+            </div>
+            <div class="mqtt-field-row">
+              <label>Username</label>
+              <input type="text" id="localUser" placeholder="Optional" spellcheck="false" autocomplete="off">
+            </div>
+            <div class="mqtt-field-row">
+              <label>Password</label>
+              <input type="password" id="localPass" placeholder="Optional" spellcheck="false" autocomplete="off">
+            </div>
+            <div class="mqtt-proto-note" id="localProtoNote">Plain TCP — no encryption.</div>
+          </div>
+
+          <!-- Cloud settings -->
+          <div id="cloudBlock" class="mqtt-conn-block" style="display:none;">
+            <h4>Cloud Broker</h4>
+            <div class="mqtt-field-row">
+              <label>Protocol</label>
+              <select id="cloudProto" onchange="updateProtoNote()">
+                <option value="ws">WS (WebSocket plain)</option>
+                <option value="wss">WSS (WebSocket over TLS)</option>
+              </select>
+            </div>
+            <div class="mqtt-field-row">
+              <label>Host</label>
+              <input type="text" id="cloudHost" placeholder="e.g. 10.12.27.21 or broker.emqx.io" spellcheck="false" autocomplete="off">
+            </div>
+            <div class="mqtt-field-row">
+              <label>Port</label>
+              <input type="number" id="cloudPort" min="1" max="65535" value="8083" style="max-width:100px;">
+            </div>
+            <div class="mqtt-field-row">
+              <label>WS Path</label>
+              <input type="text" id="cloudPath" placeholder="/mqtt" value="/mqtt" spellcheck="false">
+            </div>
+            <div class="mqtt-field-row">
+              <label>Username</label>
+              <input type="text" id="cloudUser" placeholder="Optional" spellcheck="false" autocomplete="off">
+            </div>
+            <div class="mqtt-field-row">
+              <label>Password</label>
+              <input type="password" id="cloudPass" placeholder="Optional" spellcheck="false" autocomplete="off">
+            </div>
+            <div class="mqtt-proto-note" id="cloudProtoNote">WS — plain WebSocket.</div>
+          </div>
+
+          <p class="mqtt-hint">Changes apply on Save. ESP32 will reconnect to new broker.</p>
+
+          <div style="margin-top:14px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+            <span id="mqttSaveMsg" class="form-status-msg"></span>
+            <button type="submit" class="btn-save-formula">Save MQTT Config</button>
+          </div>
+        </div>
+      </div>
+    </form>
+
+    <div class="site-footer">&copy; Smart Laboratory Monitoring System. All rights reserved.</div>
+  </div>
+
+  <script src="/app.js"></script>
+  <script>
+    let currentMode = 'local';
+    let mqttFormLoaded = false;
+
+    function setMode(mode) {
+      currentMode = mode;
+      document.getElementById('localBlock').style.display = mode === 'local' ? '' : 'none';
+      document.getElementById('cloudBlock').style.display = mode === 'cloud' ? '' : 'none';
+      document.getElementById('btnLocal').classList.toggle('active', mode === 'local');
+      document.getElementById('btnCloud').classList.toggle('active', mode === 'cloud');
+      updateProtoNote();
+    }
+
+    function updateProtoNote() {
+      const lp = document.getElementById('localProto').value;
+      const cp = document.getElementById('cloudProto').value;
+      document.getElementById('localProtoNote').textContent = lp === 'ssl' ? 'TLS/SSL — encrypted.' : 'Plain TCP — no encryption.';
+      document.getElementById('cloudProtoNote').textContent = cp === 'wss' ? 'WSS — encrypted WebSocket. Recommended for cloud.' : 'WS — plain WebSocket.';
+    }
+
+    document.getElementById('localProto').addEventListener('change', function () {
+      document.getElementById('localPort').value = this.value === 'ssl' ? '8883' : '1883';
+    });
+
+    document.getElementById('cloudProto').addEventListener('change', function () {
+      document.getElementById('cloudPort').value = this.value === 'wss' ? '8084' : '8083';
+      if (!document.getElementById('cloudPath').value) document.getElementById('cloudPath').value = '/mqtt';
+    });
+
+    function updateMqttStatusBadge(d) {
+      const badge = document.getElementById('mqttConnBadge');
+      badge.textContent = d.mqttConnected ? '\u25cf Connected' : '\u25cf Disconnected';
+      badge.className = 'mqtt-conn-badge ' + (d.mqttConnected ? 'connected' : 'disconnected');
+      document.getElementById('activeHost').textContent = d.mqttHost || '--';
+      document.getElementById('activeSummary').textContent = d.mqttMode
+        ? '(' + d.mqttMode + ' / ' + (d.mqttProto || '').toUpperCase() + ' :' + d.mqttPort + ')' : '';
+    }
+
+    async function loadMqttConfig() {
+      try {
+        const res = await fetch('/getConfig');
+        if (res.redirected) { window.location.reload(); return; }
+        const d = await res.json();
+        if (!mqttFormLoaded) {
+          mqttFormLoaded = true;
+          document.getElementById('deviceName').value = d.deviceName || 'lab_main_s3';
+          const mode = (d.mqttMode === 'cloud') ? 'cloud' : 'local';
+          setMode(mode);
+
+          const lp = (d.mqttProto === 'ssl') ? 'ssl' : 'tcp';
+          document.getElementById('localProto').value = lp;
+          document.getElementById('localHost').value = (mode === 'local') ? (d.mqttHost || '') : '';
+          document.getElementById('localPort').value = (mode === 'local' && d.mqttPort) ? d.mqttPort : (lp === 'ssl' ? 8883 : 1883);
+          document.getElementById('localUser').value = (mode === 'local') ? (d.mqttUser || '') : '';
+          document.getElementById('localPass').value = (mode === 'local') ? (d.mqttPass || '') : '';
+
+          const cp = (d.mqttProto === 'wss') ? 'wss' : 'ws';
+          document.getElementById('cloudProto').value = cp;
+          document.getElementById('cloudHost').value = (mode === 'cloud') ? (d.mqttHost || '') : '';
+          document.getElementById('cloudPort').value = (mode === 'cloud' && d.mqttPort) ? d.mqttPort : (cp === 'wss' ? 8084 : 8083);
+          document.getElementById('cloudPath').value = d.mqttPath || '/mqtt';
+          document.getElementById('cloudUser').value = (mode === 'cloud') ? (d.mqttUser || '') : '';
+          document.getElementById('cloudPass').value = (mode === 'cloud') ? (d.mqttPass || '') : '';
+          updateProtoNote();
+        }
+        updateMqttStatusBadge(d);
+      } catch (e) { console.error(e); }
+    }
+
+    document.getElementById('mqttForm').onsubmit = async function (e) {
+      e.preventDefault();
+      const msg = document.getElementById('mqttSaveMsg');
+      msg.style.color = '#555';
+      msg.textContent = 'Saving...';
+
+      const params = new URLSearchParams();
+      params.set('deviceName', document.getElementById('deviceName').value.trim() || 'lab_main_s3');
+      params.set('mqttMode', currentMode);
+      if (currentMode === 'local') {
+        params.set('mqttProto', document.getElementById('localProto').value);
+        params.set('mqttHost', document.getElementById('localHost').value.trim());
+        params.set('mqttPort', document.getElementById('localPort').value);
+        params.set('mqttPath', '');
+        params.set('mqttUser', document.getElementById('localUser').value);
+        params.set('mqttPass', document.getElementById('localPass').value);
+      } else {
+        params.set('mqttProto', document.getElementById('cloudProto').value);
+        params.set('mqttHost', document.getElementById('cloudHost').value.trim());
+        params.set('mqttPort', document.getElementById('cloudPort').value);
+        params.set('mqttPath', document.getElementById('cloudPath').value.trim() || '/mqtt');
+        params.set('mqttUser', document.getElementById('cloudUser').value);
+        params.set('mqttPass', document.getElementById('cloudPass').value);
+      }
+      try {
+        const r = await fetch('/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: params.toString()
+        });
+        if (r.ok) {
+          msg.style.color = '#16a34a';
+          msg.textContent = 'MQTT config saved! Reconnecting...';
+          setTimeout(loadMqttConfig, 1500);
+        } else {
+          msg.style.color = '#dc2626';
+          msg.textContent = 'Save failed: ' + await r.text();
+        }
+      } catch (err) {
+        msg.style.color = '#dc2626';
+        msg.textContent = 'Network error.';
+      }
+    };
+
+    loadMqttConfig();
+    setInterval(() => { if (document.visibilityState !== 'hidden') loadMqttConfig(); }, 4000);
+  </script>
+</body>
+
+</html>
