@@ -43,7 +43,7 @@ The primary sensor and actuator hub for the laboratory.
 
 * **Atomizer:** 5V Relay IN2 (GPIO 6).
 
-* **Active Buzzer Module:** I/O Pin to GPIO 7. Plug-and-play module with integrated switching transistor.
+* **Active Buzzer Module:** I/O Pin to GPIO 7. Powered by **3.3V** (critical for Low-Level Trigger PNP modules so ESP32 3.3V HIGH turns the transistor completely OFF).
 
 * **WS2812B LED (ARGB):** Data input to GPIO 21. Powered directly from the 5V rail.
 

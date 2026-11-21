@@ -123,11 +123,12 @@ To ensure peak radio transmission spikes do not overload the microcontroller, th
 *   A tiny **AMS1117-3.3V Step-Down Module** takes input from the 5.0V rail and outputs 3.3V strictly to the **LoRa SX1278 VCC pin**.
 
 **4. Low-Power 3.3V Logic Rail (Internal)**
-The ESP32-S3's internal 3.3V pin is reserved strictly for lightweight, low-current digital sensors:
+The ESP32-S3's internal 3.3V pin is reserved strictly for lightweight, low-current digital sensors and 3.3V-referenced triggers:
 *   BME280 Sensor
 *   SGP30 Sensor
 *   1.3" I2C OLED Display (SH1106)
 *   IR Flame Sensor
+*   Active Buzzer Module (Low-Level Trigger — requires 3.3V VCC so 3.3V GPIO HIGH turns it OFF)
 
 **5. Common Ground (Critical Requirement)**
 To ensure digital logic signals (I2C, SPI, UART, HIGH/LOW triggers) pass successfully between the ESP32-S3 and the external components, all system grounds (ESP32-S3 GND, LM2596S GND, AMS1117 GND, and Sensor GNDs) must be physically tied together into a single common ground.
