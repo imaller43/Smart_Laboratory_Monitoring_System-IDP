@@ -680,6 +680,7 @@ bool downloadAndFlash(WiFiClientSecure *client, const String &url,
     if (command == U_SPIFFS)
       backupConfigs();
     int contentLength = http.getSize();
+    detachInterrupt(digitalPinToInterrupt(PIN_FLAME));
     if (Update.begin(contentLength, command)) {
       WiFiClient *stream = http.getStreamPtr();
       size_t written = Update.writeStream(*stream);
@@ -690,6 +691,7 @@ bool downloadAndFlash(WiFiClientSecure *client, const String &url,
         success = true;
       }
     }
+    attachInterrupt(digitalPinToInterrupt(PIN_FLAME), onFlameISR, CHANGE);
   }
   http.end();
   return success;
@@ -708,11 +710,13 @@ void performGitHubOTA() {
 
   HTTPClient http;
   http.begin(*client, "https://raw.githubusercontent.com/imaller43/"
-                      "ESP32_GUI_SIB/main/version.json");
+                      "Smart_Laboratory_Monitoring_System-IDP/main/firmware/"
+                      "version.json");
   int httpCode = http.GET();
   if (httpCode != HTTP_CODE_OK) {
-    lastOtaStatus = "Update check: Could not fetch remote version.json.";
-    tgSend("OTA check failed: Could not fetch version.json");
+    lastOtaStatus = "Update check failed: Could not fetch firmware/version.json (HTTP " +
+                    String(httpCode) + ").";
+    tgSend("OTA check failed: Could not fetch firmware/version.json");
     http.end();
     delete client;
     return;
@@ -726,7 +730,7 @@ void performGitHubOTA() {
   StaticJsonDocument<512> doc;
 #endif
   if (deserializeJson(doc, payload)) {
-    lastOtaStatus = "Update check: Invalid version.json format.";
+    lastOtaStatus = "Update check failed: Invalid version.json format.";
     delete client;
     return;
   }
@@ -736,13 +740,28 @@ void performGitHubOTA() {
   String fwUrl = doc["firmware_url"] | "";
   String fsUrl = doc["fs_url"] | "";
 
+  bool fwHasNewer = (newFwVer - FIRMWARE_VERSION) > 0.001f && fwUrl.length() > 0;
+  bool fsHasNewer = (newFsVer - currentFsVersion) > 0.001f && fsUrl.length() > 0;
+
+  // Guard: If remote versions are the same (or older), do NOT update or overwrite
+  if (!fwHasNewer && !fsHasNewer) {
+    lastOtaStatus = "System is already up to date (Firmware v" +
+                    String(FIRMWARE_VERSION, 1) + ", LittleFS v" +
+                    String(currentFsVersion, 1) + "). No update applied.";
+    tgSend("*System is already up to date.*\nFirmware: `v" +
+           String(FIRMWARE_VERSION, 1) + "`\nLittleFS: `v" +
+           String(currentFsVersion, 1) + "`");
+    delete client;
+    return;
+  }
+
   bool rebootNeeded = false;
 
-  if ((newFwVer - FIRMWARE_VERSION) > 0.001f && fwUrl.length() > 0) {
+  if (fwHasNewer) {
     lastOtaStatus = "Downloading firmware v" + String(newFwVer, 1) + "...";
     tgSend("*Downloading firmware v" + String(newFwVer, 1) + "...*");
     if (downloadAndFlash(client, fwUrl, U_FLASH)) {
-      lastOtaStatus = "Firmware updated successfully!";
+      lastOtaStatus = "Firmware updated to v" + String(newFwVer, 1) + "!";
       tgSend("Firmware updated successfully!");
       rebootNeeded = true;
     } else {
@@ -751,11 +770,11 @@ void performGitHubOTA() {
     }
   }
 
-  if ((newFsVer - currentFsVersion) > 0.001f && fsUrl.length() > 0) {
+  if (fsHasNewer) {
     lastOtaStatus = "Downloading LittleFS v" + String(newFsVer, 1) + "...";
     tgSend("*Downloading LittleFS v" + String(newFsVer, 1) + "...*");
     if (downloadAndFlash(client, fsUrl, U_SPIFFS)) {
-      lastOtaStatus = "LittleFS updated successfully!";
+      lastOtaStatus = "LittleFS updated to v" + String(newFsVer, 1) + "!";
       tgSend("LittleFS updated successfully!");
       rebootNeeded = true;
     } else {
@@ -774,12 +793,6 @@ void performGitHubOTA() {
     }
     delay(1000);
     ESP.restart();
-  } else {
-    lastOtaStatus = "System is up to date (FW v" + String(FIRMWARE_VERSION, 1) +
-                    ", FS v" + String(currentFsVersion, 1) + ").";
-    tgSend("*System is already up to date.*\nFW: `v" +
-           String(FIRMWARE_VERSION, 1) + "` | FS: `v" +
-           String(currentFsVersion, 1) + "`");
   }
 
   delete client;
@@ -1809,7 +1822,55 @@ void setup() {
         }
       });
 
+  // Configure Arduino IDE Wireless OTA (ArduinoOTA)
   ArduinoOTA.setHostname(deviceName);
+  ArduinoOTA.onStart([]() {
+    detachInterrupt(digitalPinToInterrupt(PIN_FLAME));
+    if (ArduinoOTA.getCommand() == U_SPIFFS) {
+      backupConfigs();
+    }
+    Serial.println("[ArduinoOTA] Wireless upload started...");
+    if (oledReady) {
+      oled.clearBuffer();
+      oled.setFont(u8g2_font_6x10_tf);
+      oled.drawStr(0, 16, "Arduino IDE OTA");
+      oled.drawStr(0, 32,
+                   ArduinoOTA.getCommand() == U_FLASH ? "Updating Firmware..."
+                                                      : "Updating LittleFS...");
+      oled.sendBuffer();
+    }
+  });
+  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+    unsigned int pct = (total > 0) ? (progress * 100U / total) : 0;
+    if (oledReady) {
+      char buf[32];
+      snprintf(buf, sizeof(buf), "Progress: %u%%", pct);
+      oled.clearBuffer();
+      oled.setFont(u8g2_font_6x10_tf);
+      oled.drawStr(0, 16, "Arduino IDE OTA");
+      oled.drawStr(0, 32, buf);
+      oled.drawFrame(0, 42, 128, 12);
+      oled.drawBox(2, 44, (pct * 124U) / 100U, 8);
+      oled.sendBuffer();
+    }
+  });
+  ArduinoOTA.onEnd([]() {
+    if (ArduinoOTA.getCommand() == U_SPIFFS) {
+      restoreConfigs();
+    }
+    Serial.println("\n[ArduinoOTA] Update complete! Rebooting...");
+    if (oledReady) {
+      oled.clearBuffer();
+      oled.setFont(u8g2_font_6x10_tf);
+      oled.drawStr(0, 24, "OTA Complete!");
+      oled.drawStr(0, 42, "Rebooting...");
+      oled.sendBuffer();
+    }
+  });
+  ArduinoOTA.onError([](ota_error_t error) {
+    attachInterrupt(digitalPinToInterrupt(PIN_FLAME), onFlameISR, CHANGE);
+    Serial.printf("[ArduinoOTA] Error[%u]\n", error);
+  });
   ArduinoOTA.begin();
   server.begin();
 

@@ -1,0 +1,90 @@
+name: Auto-Build ESP32-S3 Firmware & LittleFS
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'firmware/main_node/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Arduino CLI
+        uses: arduino/setup-arduino-cli@v1.1.2
+
+      - name: Install ESP32 Core
+        run: |
+          arduino-cli core update-index --additional-urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
+          arduino-cli core install esp32:esp32 --additional-urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
+
+      - name: Install Libraries
+        run: |
+          arduino-cli lib install "Adafruit BME280 Library"
+          arduino-cli lib install "Adafruit SGP30 Sensor"
+          arduino-cli lib install "U8g2"
+          arduino-cli lib install "MyLD2410"
+          arduino-cli lib install "LoRa"
+          arduino-cli lib install "Adafruit NeoPixel"
+          arduino-cli lib install "ArduinoJson"
+          arduino-cli lib install "PubSubClient"
+          arduino-cli lib install "UniversalTelegramBot" --no-deps
+          arduino-cli lib install "WebSockets"
+
+      - name: Compile ESP32-S3-N16R8 Firmware
+        run: |
+          # Compile using 16MB Flash (QIO), OPI PSRAM, and Custom Partition Scheme (firmware/main_node/partitions.csv)
+          arduino-cli compile \
+            --fqbn esp32:esp32:esp32s3:CDCOnBoot=cdc,FlashMode=qio,FlashSize=16M,PSRAM=opi,PartitionScheme=custom \
+            firmware/main_node/main_node.ino \
+            --output-dir build
+
+      - name: Setup mklittlefs
+        run: |
+          wget https://github.com/earlephilhower/mklittlefs/releases/download/4.1.0/x86_64-linux-gnu-mklittlefs-42acb97.tar.gz
+          tar -zxvf x86_64-linux-gnu-mklittlefs-42acb97.tar.gz
+          sudo cp mklittlefs/mklittlefs /usr/local/bin/
+          mklittlefs --version
+
+      - name: Build LittleFS Image (.bin)
+        run: |
+          # Ensure default config.json exists in data/ (since local config.json is git-ignored)
+          if [ ! -f firmware/main_node/data/config.json ]; then
+            cp firmware/main_node/data/config.example.json firmware/main_node/data/config.json
+          fi
+          # 2MB spiffs partition in partitions.csv = 0x200000 = 2097152 bytes
+          mklittlefs -c firmware/main_node/data -p 256 -b 4096 -s 2097152 build/littlefs.bin
+          rm -f firmware/main_node/data/config.json
+
+      - name: Update version.json & Commit Binaries to GitHub
+        run: |
+          cp build/main_node.ino.bin firmware/firmware.bin
+          cp build/littlefs.bin firmware/littlefs.bin
+
+          # Extract FIRMWARE_VERSION from main_node.ino (e.g. 1.0) and FS_VERSION from data/fs_version.txt
+          FW_VER=$(grep -E '^#define[[:space:]]+FIRMWARE_VERSION' firmware/main_node/main_node.ino | sed -E 's/.*FIRMWARE_VERSION[[:space:]]+([0-9.]+).*/\1/')
+          FS_VER=$(tr -d '[:space:]' < firmware/main_node/data/fs_version.txt)
+          FW_VER=${FW_VER:-1.0}
+          FS_VER=${FS_VER:-1.0}
+
+          cat <<EOF > firmware/version.json
+          {
+            "firmware_version": ${FW_VER},
+            "fs_version": ${FS_VER},
+            "firmware_url": "https://raw.githubusercontent.com/imaller43/Smart_Laboratory_Monitoring_System-IDP/main/firmware/firmware.bin",
+            "fs_url": "https://raw.githubusercontent.com/imaller43/Smart_Laboratory_Monitoring_System-IDP/main/firmware/littlefs.bin"
+          }
+          EOF
+
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add firmware/firmware.bin firmware/littlefs.bin firmware/version.json
+          git commit -m "chore(firmware): auto-build firmware v${FW_VER} and LittleFS v${FS_VER} [skip ci]" || echo "No changes to commit"
+          git push origin ${{ github.ref_name }}

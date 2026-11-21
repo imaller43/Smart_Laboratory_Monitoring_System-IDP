@@ -190,7 +190,20 @@
         if (h.fw_ver !== undefined) document.getElementById('fwVerDisp').textContent = 'v' + Number(h.fw_ver).toFixed(1);
         if (h.fs_ver !== undefined) document.getElementById('fsVerDisp').textContent = 'v' + Number(h.fs_ver).toFixed(1);
         if (h.otaStatus && h.otaStatus.length > 0) {
-          document.getElementById('otaBannerText').textContent = h.otaStatus;
+          const banner = document.getElementById('otaBanner');
+          const dot = document.getElementById('otaDot');
+          const txt = document.getElementById('otaBannerText');
+          txt.textContent = h.otaStatus;
+          if (h.otaStatus.indexOf('failed') !== -1 || h.otaStatus.indexOf('blocked') !== -1) {
+            banner.className = 'tg-status-banner err';
+            dot.style.color = '#dc2626';
+          } else if (h.otaStatus.indexOf('Checking') !== -1 || h.otaStatus.indexOf('Downloading') !== -1) {
+            banner.className = 'tg-status-banner warn';
+            dot.style.color = '#d97706';
+          } else {
+            banner.className = 'tg-status-banner ok';
+            dot.style.color = '#16a34a';
+          }
         }
       } catch (e) { console.error(e); }
     }

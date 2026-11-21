@@ -1,16 +1,6 @@
 // ============================================================================
-//  Phase 1 Bench Diagnostic: I2C Scanner + Flame & Relay Polarity Tester
+//  Phase 1 Bench Diagnostic: Continuous I2C Scanner + Flame & Relay Tester
 //  Board: ESP32S3 Dev Module (ESP32-S3-N16R8)
-// ============================================================================
-//  How to use:
-//  1. Upload this sketch and open Serial Monitor at 115200 baud.
-//  2. It scans I2C (SDA=8, SCL=9) to verify BME280 (0x76/0x77), SGP30 (0x58),
-//     and 1.3" SH1106 OLED (0x3C).
-//  3. Every 500ms it prints the raw digitalRead(4) of the IR Flame Sensor:
-//     - Hold a lighter or IR remote in front of the Flame Sensor and see
-//       whether raw value changes to 0 (LOW) or 1 (HIGH).
-//  4. Every 4 seconds it toggles Relay IN1 (GPIO 5) and Relay IN2 (GPIO 6)
-//     between LOW and HIGH so you can see/hear which level turns the relay ON.
 // ============================================================================
 
 #include <Arduino.h>
@@ -24,15 +14,17 @@
 #define PIN_BUZZER         7
 
 unsigned long lastFlamePrintMs = 0;
-unsigned long lastRelayToggleMs = 0;
+unsigned long lastCycleMs = 0;
 bool testLevelHigh = true;
 
 void scanI2C() {
-  Serial.println("\n--- Scanning I2C Bus (SDA=GPIO 8, SCL=GPIO 9) ---");
+  Serial.println("\n--- Scanning I2C Bus (SDA=GPIO 8, SCL=GPIO 9 @ 100kHz) ---");
+
   int count = 0;
   for (uint8_t addr = 1; addr < 127; addr++) {
     Wire.beginTransmission(addr);
-    if (Wire.endTransmission() == 0) {
+    uint8_t err = Wire.endTransmission();
+    if (err == 0) {
       Serial.printf("  [FOUND] I2C Device at 0x%02X", addr);
       if (addr == 0x3C || addr == 0x3D)
         Serial.print(" -> 1.3\" SH1106 OLED Display");
@@ -45,14 +37,17 @@ void scanI2C() {
     }
   }
   if (count == 0) {
-    Serial.println("  [WARN] No I2C devices found! Check 3.3V power, GND, SDA=8, SCL=9.");
+    Serial.println("  [WARN] No I2C devices found! Check:");
+    Serial.println("         1) Try plugging ONLY ONE I2C module at a time (OLED -> BME280 -> SGP30)");
+    Serial.println("         2) Check 3.3V and GND on the module (watch for breadboard middle rail split!)");
+    Serial.println("         3) Verify SDA -> GPIO 8 and SCL -> GPIO 9 (not swapped)");
   }
-  Serial.println("--------------------------------------------------\n");
+  Serial.println("----------------------------------------------------------");
 }
 
 void setup() {
   Serial.begin(115200);
-  delay(1000);
+  delay(1500);
   Serial.println("\n=======================================================");
   Serial.println("  ESP32-S3 Hardware & Polarity Bench Diagnostic Tool   ");
   Serial.println("=======================================================");
@@ -66,30 +61,41 @@ void setup() {
   digitalWrite(PIN_RELAY_ATOMIZER, HIGH);
   digitalWrite(PIN_BUZZER, LOW);
 
-  Wire.begin(PIN_I2C_SDA, PIN_I2C_SCL);
+  // Check if SDA or SCL is stuck LOW before starting Wire
+  pinMode(PIN_I2C_SDA, INPUT_PULLUP);
+  pinMode(PIN_I2C_SCL, INPUT_PULLUP);
+  delay(10);
+  Serial.printf("[I2C LINE CHECK] Idle SDA (GPIO 8) = %s | Idle SCL (GPIO 9) = %s\n",
+                digitalRead(PIN_I2C_SDA) ? "HIGH (OK)" : "LOW (STUCK/SHORTED!)",
+                digitalRead(PIN_I2C_SCL) ? "HIGH (OK)" : "LOW (STUCK/SHORTED!)");
+
+  Wire.begin(PIN_I2C_SDA, PIN_I2C_SCL, 100000); // 100 kHz for breadboard stability
   scanI2C();
 }
 
 void loop() {
   unsigned long now = millis();
 
-  // Print Flame Sensor raw state every 500ms
-  if (now - lastFlamePrintMs >= 500) {
+  // Print Flame Sensor raw state every 1000ms
+  if (now - lastFlamePrintMs >= 1000) {
     lastFlamePrintMs = now;
     int rawFlame = digitalRead(PIN_FLAME);
     Serial.printf("[FLAME GPIO 4] Raw digitalRead = %d (%s)\n", rawFlame,
-                  rawFlame == LOW ? "LOW" : "HIGH");
+                  rawFlame == LOW ? "LOW (FLAME DETECTED)" : "HIGH (Clear)");
   }
 
-  // Toggle Relay pins between HIGH and LOW every 4 seconds
-  if (now - lastRelayToggleMs >= 4000) {
-    lastRelayToggleMs = now;
+  // Re-scan I2C and toggle Relay pins every 4 seconds
+  if (now - lastCycleMs >= 4000) {
+    lastCycleMs = now;
+
+    // Rescan I2C continuously so you can plug in 1 module at a time and see it live
+    scanI2C();
+
     testLevelHigh = !testLevelHigh;
     int level = testLevelHigh ? HIGH : LOW;
     digitalWrite(PIN_RELAY_FAN, level);
     digitalWrite(PIN_RELAY_ATOMIZER, level);
-    Serial.printf("\n>>> [RELAY TEST] Setting GPIO 5 (Fan) & GPIO 6 (Atomizer) to %s (%d) <<<\n",
-                  testLevelHigh ? "HIGH" : "LOW", level);
-    Serial.println("    Observe your Relay LEDs/Click: If ON now, set RELAY_ON_LEVEL to this value in pins.h!\n");
+    Serial.printf(">>> [RELAY TEST] GPIO 5 (Fan) & GPIO 6 (Atomizer) = %s (%d) <<<\n\n",
+                  testLevelHigh ? "HIGH (OFF)" : "LOW (ON)", level);
   }
 }

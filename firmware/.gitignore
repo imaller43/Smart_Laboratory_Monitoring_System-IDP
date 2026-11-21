@@ -8,6 +8,8 @@ compile_commands.json
 # Arduino IDE / ESP32 build artifacts
 build/
 *.bin
+!firmware.bin
+!littlefs.bin
 *.elf
 *.map
 *.hex
