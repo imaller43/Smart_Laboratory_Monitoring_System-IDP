@@ -29,7 +29,7 @@
 #include <WiFiClientSecure.h>
 #include <Wire.h>
 
-#define FIRMWARE_VERSION 1.1f
+#define FIRMWARE_VERSION 1.2f
 float currentFsVersion = 1.0f;
 
 // ─── WebSocket Bridge for Cloud MQTT (WS / WSS) ─────────────────────────────
@@ -919,6 +919,7 @@ void sensorAndSafetyTask(void *pv) {
   unsigned long lastPollMs = 0;
   unsigned long lastPublishMs = 0;
   float prevTemp = 25.0f;
+  bool prevTempInitialized = false;
   SafetyState currentState = STATE_NORMAL;
 
   // Running sum/count for Mode A (3-minute averaging in States 0 & 4)
@@ -977,26 +978,29 @@ void sensorAndSafetyTask(void *pv) {
       }
 
       // Evaluate Sensor Fusion State Machine (States 0 through 4)
-      bool rapidTempRise = (t - prevTemp) >= 2.5f; // >=2.5C rise in 1 second
-      if (trigger1HzEval)
+      bool rapidTempRise = prevTempInitialized && ((t - prevTemp) >= 2.5f);
+      if (trigger1HzEval) {
         prevTemp = t;
+        prevTempInitialized = true;
+      }
 
       SafetyState nextState = STATE_NORMAL;
       if (flameActive) {
-        if (t > 45.0f || rapidTempRise) {
+        // Flame detected: Confirmed Fire only if Temp >= 45C, TVOC >= 500, or rapid heat spike
+        // Otherwise (Temp < 45C and TVOC < 500), classify as State 4: Sensor Glitch
+        if (t >= 45.0f || tvoc >= 500 || rapidTempRise) {
           nextState = STATE_EMERGENCY; // State 3: Confirmed Fire
-        } else if (t < 30.0f && tvoc < 250) {
-          nextState = STATE_GLITCH; // State 4: Sensor Glitch / False Alarm
         } else {
-          nextState = STATE_EMERGENCY; // Flame with elevated temp/gas -> Fire
+          nextState = STATE_GLITCH; // State 4: Sensor Glitch / False Alarm
         }
       } else {
+        // No flame detected: evaluate gas leak thresholds regardless of ambient room temp
         if (tvoc > 1500) {
           nextState = STATE_CRITICAL; // State 2: Severe Toxic Leak
-        } else if (tvoc >= 500 && t < 32.0f) {
+        } else if (tvoc > 500) {
           nextState = STATE_WARNING; // State 1: Minor Chemical Leak
         } else {
-          nextState = STATE_NORMAL; // State 0: Normal
+          nextState = STATE_NORMAL; // State 0: Normal / Safe
         }
       }
 
