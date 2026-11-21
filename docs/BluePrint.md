@@ -159,11 +159,11 @@ The system utilizes the ESP32-S3's flexible GPIO matrix. The mapping below strat
 
 | Component / Function | LoRa Pin | ESP32 Super Mini | Notes & Wiring Instructions |
 | :--- | :--- | :--- | :--- |
-| **LoRa SX1278** | SCK (Clock) | **GPIO 4(PIN 4)** | Standard SPI clock. |
-| (SPI Bus) | MISO (Data In) | **GPIO 5(PIN 5)** | Standard SPI data in. |
-| | MOSI (Data Out) | **GPIO 6(PIN 6)** | Standard SPI data out. |
-| | CS / NSS (Chip Select)| **GPIO 7(PIN 7)** | Tells the LoRa module to listen. |
-| | RST (Reset) | **GPIO 3(PIN 3)** | Resets the LoRa module on boot. |
-| | DIO0 (Interrupt) | **GPIO 10(PIN 10)** | Triggers the Super Mini when an alert arrives. |
+| **LoRa SX1278** | SCK (Clock) | **GPIO 4** | Standard SPI clock. |
+| (SPI Bus) | MISO (Data In) | **GPIO 5** | Standard SPI data in. |
+| | MOSI (Data Out) | **GPIO 6** | Standard SPI data out. |
+| | CS / NSS (Chip Select)| **GPIO 7** | Tells the LoRa module to listen. |
+| | RST (Reset) | **GPIO 3** | Resets the LoRa module on boot. |
+| | DIO0 (Interrupt) | **GPIO 10** | Triggers the Super Mini when an alert arrives. |
 | **Power** | VCC | **3.3V Pin** | Safe to use Super Mini 3.3V (Gateway is RX only). |
 | | GND | **GND Pin** | Shared common ground. |
