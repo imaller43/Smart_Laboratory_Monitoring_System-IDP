@@ -32,7 +32,9 @@
   </nav>
 
   <div class="container">
-    <h1>Telegram Bot</h1>
+    <div class="dash-header" style="text-align: center; justify-content: center;">
+      <h1 class="dash-title">Telegram Bot</h1>
+    </div>
 
     <div class="tg-status-banner" id="tgBanner">
       <span class="tg-status-dot" id="tgDot">&#9679;</span>
@@ -93,6 +95,13 @@
       </div>
     </div>
 
+    <!-- Actions (Moved above Bot Commands Reference) -->
+    <div class="tg-btn-row" style="margin-bottom: 8px;">
+      <button class="btn-save-formula" onclick="saveTgConfig()">Save &amp; Apply</button>
+      <button class="btn-calc" onclick="sendTestMessage()" id="btnTest">Send Test Message</button>
+    </div>
+    <div id="tgActionMsg" style="min-height:18px;margin-bottom:12px;font-size:13px;font-weight:600;text-align:left;"></div>
+
     <!-- Bot Commands Reference (removed /resetmetrics, adapted for Lab Safety) -->
     <div class="tg-section">
       <div class="tg-section-title">Bot Commands Reference</div>
@@ -123,13 +132,6 @@
         </tbody>
       </table>
     </div>
-
-    <!-- Actions -->
-    <div class="tg-btn-row">
-      <button class="btn-save-formula" onclick="saveTgConfig()">Save &amp; Apply</button>
-      <button class="btn-calc" onclick="sendTestMessage()" id="btnTest">Send Test Message</button>
-    </div>
-    <div id="tgActionMsg" style="min-height:20px;margin-top:10px;font-size:13px;font-weight:600;text-align:left;"></div>
 
     <div class="site-footer">&copy; Smart Laboratory Monitoring System. All rights reserved.</div>
   </div>

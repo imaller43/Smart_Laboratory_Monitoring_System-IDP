@@ -42,6 +42,6 @@
 #define RELAY_ON_LEVEL      LOW
 #define RELAY_OFF_LEVEL     HIGH
 
-// Active Buzzer (usually Active-HIGH; flip if your buzzer module is Active-LOW)
-#define BUZZER_ON_LEVEL     LOW
-#define BUZZER_OFF_LEVEL    HIGH
+// Active Buzzer (Active-HIGH: HIGH = ON, LOW = OFF)
+#define BUZZER_ON_LEVEL     HIGH
+#define BUZZER_OFF_LEVEL    LOW

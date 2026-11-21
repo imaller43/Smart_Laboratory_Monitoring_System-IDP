@@ -44,14 +44,14 @@
     <!-- Check for Update Push Button (Replaces Daily Auto Update toggle) -->
     <div class="io-wrapper" style="margin-top: 20px;">
       <div class="io-box"
-        style="flex: 1; display: flex; justify-content: space-between; align-items: center; max-width: 640px; margin: 0 auto; text-align: left; gap: 16px; flex-wrap: wrap;">
-        <div>
+        style="flex: 1; display: flex; flex-direction: column; align-items: center; max-width: 640px; margin: 0 auto; text-align: left; gap: 14px;">
+        <div style="width: 100%;">
           <h2 style="margin:0; font-size:15px; text-transform: uppercase; border: none; padding: 0;">CHECK FOR UPDATE</h2>
           <p style="font-size:13px;color:var(--text-muted);margin:5px 0 0 0;">
             Check remote repository for newer Firmware and LittleFS versions on demand.
           </p>
         </div>
-        <div>
+        <div style="width: 100%; display: flex; justify-content: center;">
           <button type="button" class="btn-save-formula" id="btnCheckUpdate" onclick="triggerCheckUpdate()">
             Check for Update
           </button>
@@ -103,7 +103,7 @@
       </div>
     </div>
 
-    <div class="site-footer" style="margin-top: 40px;">&copy; Smart Laboratory Monitoring System. All rights reserved.</div>
+    <div class="site-footer">&copy; Smart Laboratory Monitoring System. All rights reserved.</div>
   </div>
 
   <script src="/app.js"></script>

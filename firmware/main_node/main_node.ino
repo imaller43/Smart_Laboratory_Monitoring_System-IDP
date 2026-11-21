@@ -29,7 +29,7 @@
 #include <WiFiClientSecure.h>
 #include <Wire.h>
 
-#define FIRMWARE_VERSION 1.0f
+#define FIRMWARE_VERSION 1.1f
 float currentFsVersion = 1.0f;
 
 // ─── WebSocket Bridge for Cloud MQTT (WS / WSS) ─────────────────────────────
@@ -260,8 +260,6 @@ void loadSgpBaseline() {
   uint32_t eco2_base = 0, tvoc_base = 0;
   if (sscanf(line.c_str(), "%lx,%lx", &eco2_base, &tvoc_base) == 2) {
     sgp.setIAQBaseline((uint16_t)eco2_base, (uint16_t)tvoc_base);
-    Serial.printf("[SGP30] Restored baseline: eCO2=0x%04X, TVOC=0x%04X\n",
-                  (uint16_t)eco2_base, (uint16_t)tvoc_base);
   }
 }
 
@@ -1181,7 +1179,6 @@ void publishTelemetryPacket(const TelemetryPacket &pkt) {
     LoRa.beginPacket();
     LoRa.print(jsonPayload);
     LoRa.endPacket(true); // async non-blocking TX
-    Serial.printf("[LoRa TX] %s\n", jsonPayload.c_str());
   }
 
   // Send immediate Telegram alert on State Change (Edge Trigger)
@@ -1562,15 +1559,6 @@ void handleCheckUpdate() {
 //  SETUP
 // ============================================================================
 void setup() {
-  Serial.begin(115200);
-  delay(400);
-  Serial.println("\n=======================================================");
-  Serial.println("  Smart Laboratory Safety Monitoring System (ESP32-S3) ");
-  Serial.println("=======================================================");
-  Serial.printf("Flash: %u MB | PSRAM: %u KB\n",
-                (unsigned)(ESP.getFlashChipSize() / (1024 * 1024)),
-                (unsigned)(ESP.getPsramSize() / 1024));
-
   // 1. Initialize Actuator & Input Pins to Safe Defaults immediately
   pinMode(PIN_FLAME, INPUT_PULLUP);
   pinMode(PIN_RELAY_FAN, OUTPUT);
@@ -1590,7 +1578,6 @@ void setup() {
 
   // 2. Mount LittleFS & Load Configurations
   if (LittleFS.begin(true)) {
-    Serial.println("[LittleFS] Mounted successfully.");
     if (LittleFS.exists("/fs_version.txt")) {
       File f = LittleFS.open("/fs_version.txt", "r");
       if (f) {
@@ -1598,8 +1585,6 @@ void setup() {
         f.close();
       }
     }
-  } else {
-    Serial.println("[LittleFS] ERROR: Failed to mount LittleFS!");
   }
 
   loadConfig();
@@ -1619,76 +1604,42 @@ void setup() {
     oled.drawStr(0, 14, "Smart Lab Safety S3");
     oled.drawStr(0, 30, "Booting Hardware...");
     oled.sendBuffer();
-    Serial.println("[I2C] 1.3\" SH1106 OLED (0x3C): OK");
-  } else {
-    Serial.println("[I2C] 1.3\" SH1106 OLED (0x3C): NOT DETECTED");
   }
 
   // Probe BME280 (auto-check 0x76 then 0x77)
   if (bme.begin(0x76, &Wire) || bme.begin(0x77, &Wire)) {
     bmeReady = true;
-    Serial.println("[I2C] BME280 Sensor (0x76/0x77): OK");
-  } else {
-    Serial.println("[I2C] BME280 Sensor: NOT DETECTED");
   }
 
   // Probe SGP30 (0x58)
   if (sgp.begin(&Wire)) {
     sgpReady = true;
     loadSgpBaseline();
-    Serial.println("[I2C] SGP30 Air Quality Sensor (0x58): OK");
-  } else {
-    Serial.println("[I2C] SGP30 Air Quality Sensor: NOT DETECTED");
   }
 
   // 4. Probe HLK-LD2410C Radar on UART1 (RX=18, TX=17 @ 256000 baud)
   radarSerial.begin(RADAR_BAUD, SERIAL_8N1, PIN_RADAR_RX, PIN_RADAR_TX);
-  if (radar.begin()) {
-    radarReady = true;
-    Serial.println("[UART1] HLK-LD2410C Radar: OK");
-  } else {
-    // Still allow runtime frames if radar powers up slightly later
-    radarReady = true;
-    Serial.println("[UART1] HLK-LD2410C Radar: Listening on RX=18, TX=17");
-  }
+  radar.begin();
+  radarReady = true;
 
   // 5. Probe LoRa SX1278 433 MHz on SPI (SCK=12, MISO=13, MOSI=11, CS=10)
   SPI.begin(PIN_LORA_SCK, PIN_LORA_MISO, PIN_LORA_MOSI, PIN_LORA_CS);
   LoRa.setPins(PIN_LORA_CS, PIN_LORA_RST, PIN_LORA_DIO0);
   if (LoRa.begin(LORA_FREQUENCY)) {
     loraReady = true;
-    Serial.println("[SPI] LoRa SX1278 (433 MHz): OK");
-  } else {
-    Serial.println("[SPI] LoRa SX1278 (433 MHz): NOT DETECTED");
   }
 
   // 6. Start Wi-Fi (AP + STA so portal is always reachable)
   WiFi.mode(WIFI_AP_STA);
   WiFi.softAP(AP_FALLBACK_SSID, AP_FALLBACK_PASS);
-  Serial.printf("[Wi-Fi AP] SSID: %s | AP IP: %s\n", AP_FALLBACK_SSID,
-                WiFi.softAPIP().toString().c_str());
 
   if (strlen(wifiSsid) > 0) {
-    Serial.printf("[Wi-Fi STA] Connecting to %s ", wifiSsid);
     WiFi.begin(wifiSsid, wifiPass);
     WiFi.setSleep(false);
     unsigned long startWait = millis();
     while (WiFi.status() != WL_CONNECTED && millis() - startWait < 10000) {
       delay(250);
-      Serial.print(".");
     }
-    Serial.println();
-    if (WiFi.status() == WL_CONNECTED) {
-      Serial.printf("[Wi-Fi STA] Connected! IP: %s\n",
-                    WiFi.localIP().toString().c_str());
-    } else {
-      Serial.println(
-          "[Wi-Fi STA] Could not connect. Use AP 192.168.4.1 to configure.");
-    }
-  } else {
-    Serial.println(
-        "[Wi-Fi STA] No SSID saved yet. Connect to AP 'LabSafety-S3-Setup' "
-        "(192.168.4.1).");
   }
 
   // 7. Create FreeRTOS Queues, Mutex, and Core 1 / Core 0 Tasks
@@ -1829,7 +1780,6 @@ void setup() {
     if (ArduinoOTA.getCommand() == U_SPIFFS) {
       backupConfigs();
     }
-    Serial.println("[ArduinoOTA] Wireless upload started...");
     if (oledReady) {
       oled.clearBuffer();
       oled.setFont(u8g2_font_6x10_tf);
@@ -1858,7 +1808,6 @@ void setup() {
     if (ArduinoOTA.getCommand() == U_SPIFFS) {
       restoreConfigs();
     }
-    Serial.println("\n[ArduinoOTA] Update complete! Rebooting...");
     if (oledReady) {
       oled.clearBuffer();
       oled.setFont(u8g2_font_6x10_tf);
@@ -1869,7 +1818,6 @@ void setup() {
   });
   ArduinoOTA.onError([](ota_error_t error) {
     attachInterrupt(digitalPinToInterrupt(PIN_FLAME), onFlameISR, CHANGE);
-    Serial.printf("[ArduinoOTA] Error[%u]\n", error);
   });
   ArduinoOTA.begin();
   server.begin();
