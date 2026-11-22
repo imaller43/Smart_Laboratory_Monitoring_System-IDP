@@ -1,0 +1,7 @@
+{
+  "botToken": "",
+  "chatId": "",
+  "enabled": false,
+  "alertEveryVal": 0,
+  "alertEveryUnit": "minutes"
+}

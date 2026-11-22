@@ -1,0 +1,12 @@
+{
+  "deviceName": "lab_gateway_mini",
+  "wifiSsid": "",
+  "wifiPass": "",
+  "mqttMode": "local",
+  "mqttProto": "tcp",
+  "mqttHost": "",
+  "mqttPort": 1883,
+  "mqttPath": "/mqtt",
+  "mqttUser": "",
+  "mqttPass": ""
+}

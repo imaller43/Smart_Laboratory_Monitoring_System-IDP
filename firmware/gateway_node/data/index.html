@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LoRa Gateway Dashboard — Smart Laboratory Monitoring System</title>
+  <link rel="stylesheet" href="/style.css">
+  <script>
+    (function () {
+      if (localStorage.getItem('theme') === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
+</head>
+
+<body>
+
+  <nav class="topnav">
+    <a href="/" class="topnav-brand">Smart Laboratory Monitoring System</a>
+    <div class="topnav-links">
+      <a href="/" class="nav-link active">Dashboard</a>
+      <a href="/iot" class="nav-link">IoT Configuration</a>
+      <a href="/telegram" class="nav-link">Telegram</a>
+      <a href="/update" class="nav-link">System Update</a>
+    </div>
+    <div class="topnav-right">
+      <button type="button" class="theme-switch" id="themeToggle" title="Toggle Theme"></button>
+      <a href="/logout" class="btn-logout">Logout</a>
+    </div>
+  </nav>
+
+  <div class="container">
+
+    <!-- Header -->
+    <div class="dash-header">
+      <h1 class="dash-title">ESP32 LoRa Gateway Dashboard</h1>
+      <div id="dateTimeBox">
+        <div class="dt-time" id="clockTime">--:--:--</div>
+        <div id="clockDate">--- --, ----</div>
+      </div>
+    </div>
+
+    <!-- Top Info Row -->
+    <div class="top-info-row">
+      <span class="info-chip"><b>IP:</b> <span id="ipAddr">?</span></span>
+      <span class="info-chip"><b>Network:</b> <span id="networkType">?</span></span>
+      <span class="info-chip"><b>LoRa 433MHz:</b> <span id="loraRadioStatus">?</span></span>
+      <span id="systemStateBadge" class="state-normal">Last Main State: NORMAL</span>
+    </div>
+
+    <!-- Dashboard Body -->
+    <div class="dash-body">
+
+      <!-- Left Panel: Wi-Fi Credentials & Authentication Process -->
+      <div class="left-config-panel">
+
+        <!-- 1. Wi-Fi Credentials Section -->
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <h3 class="dash-card-title">Wi-Fi Credentials</h3>
+            <span class="mqtt-conn-badge" id="wifiConnBadge">&#9679; Checking...</span>
+          </div>
+
+          <form id="wifiForm" onsubmit="saveWifi(event)">
+            <div class="dash-form-row">
+              <label for="wifiSsid">Wi-Fi SSID</label>
+              <input type="text" id="wifiSsid" placeholder="Enter Wi-Fi network name" required spellcheck="false" autocomplete="off">
+            </div>
+            <div class="dash-form-row" id="scanRow" style="display:none;">
+              <label for="wifiScanSelect">Nearby Networks</label>
+              <select id="wifiScanSelect" onchange="if(this.value) document.getElementById('wifiSsid').value = this.value;">
+                <option value="">-- Select scanned SSID --</option>
+              </select>
+            </div>
+            <div class="dash-form-row">
+              <label for="wifiPass">Wi-Fi Password</label>
+              <input type="password" id="wifiPass" placeholder="Enter Wi-Fi password (blank = open/keep)" spellcheck="false" autocomplete="new-password">
+            </div>
+            <div class="dash-btn-row">
+              <button type="submit" class="btn-save-formula">Save &amp; Connect Wi-Fi</button>
+              <button type="button" class="btn-calc" id="btnScanWifi" onclick="scanWifiNetworks()">Scan Wi-Fi</button>
+              <span class="form-status-msg" id="wifiMsg"></span>
+            </div>
+          </form>
+        </div>
+
+        <!-- 2. Authentication Process Section -->
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <h3 class="dash-card-title">Authentication Process</h3>
+            <span class="mqtt-conn-badge connected" id="authUserBadge">User: admin</span>
+          </div>
+
+          <form id="authForm" onsubmit="saveAuth(event)">
+            <div class="dash-form-row">
+              <label for="authUsername">New Username</label>
+              <input type="text" id="authUsername" placeholder="e.g. admin" required spellcheck="false" autocomplete="username">
+            </div>
+            <div class="dash-form-row">
+              <label for="authCurPass">Current Password</label>
+              <input type="password" id="authCurPass" placeholder="Verify current password" required autocomplete="current-password">
+            </div>
+            <div class="dash-form-row">
+              <label for="authNewPass">New Password</label>
+              <input type="password" id="authNewPass" placeholder="Enter new password" required autocomplete="new-password">
+            </div>
+            <div class="dash-form-row">
+              <label for="authConfirmPass">Confirm Password</label>
+              <input type="password" id="authConfirmPass" placeholder="Re-enter new password" required autocomplete="new-password">
+            </div>
+            <div class="dash-btn-row">
+              <button type="submit" class="btn-save-formula">Update Credentials</button>
+              <span class="form-status-msg" id="authMsg"></span>
+            </div>
+          </form>
+        </div>
+
+      </div>
+
+      <!-- Right Panel: ESP32 Health + LoRa Receiver Metrics -->
+      <div class="health-panel">
+        <div class="panel-section-label">ESP32 Health &amp; LoRa Receiver</div>
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <span class="mc-label">Internal Temp</span>
+            <span class="mc-value" id="hpTemp">--</span>
+            <span class="mc-sub">Chip temperature</span>
+          </div>
+          <div class="metric-card">
+            <span class="mc-label">Free Heap</span>
+            <span class="mc-value" id="hpHeap">--</span>
+            <span class="mc-sub">Available RAM</span>
+          </div>
+          <div class="metric-card">
+            <span class="mc-label">WiFi RSSI</span>
+            <span class="mc-value" id="hpRssi">--</span>
+            <span class="mc-sub">Signal strength</span>
+          </div>
+          <div class="metric-card">
+            <span class="mc-label">CPU Freq</span>
+            <span class="mc-value" id="hpCpu">--</span>
+            <span class="mc-sub">Clock speed</span>
+          </div>
+          <div class="metric-card">
+            <span class="mc-label">LoRa Packets RX</span>
+            <span class="mc-value green" id="loraRxCount">0</span>
+            <span class="mc-sub">Forwarded to MQTT</span>
+          </div>
+          <div class="metric-card">
+            <span class="mc-label">Last LoRa RSSI</span>
+            <span class="mc-value" id="loraLastRssi">--</span>
+            <span class="mc-sub">433 MHz RF signal</span>
+          </div>
+          <div class="metric-card" style="grid-column:span 2;">
+            <span class="mc-label">Uptime</span>
+            <span class="mc-value green" id="hpUptime">--</span>
+            <span class="mc-sub">Time since last boot</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="site-footer">&copy; Smart Laboratory Monitoring System. All rights reserved.</div>
+  </div>
+
+  <script src="/app.js"></script>
+  <script>
+    const STATE_NAMES = ['NORMAL', 'WARNING (GAS LEAK)', 'CRITICAL (TOXIC GAS)', 'EMERGENCY (FIRE)', 'SENSOR GLITCH'];
+    const STATE_CLASSES = ['state-normal', 'state-warning', 'state-critical', 'state-emergency', 'state-glitch'];
+
+    function fmtUptime(ms) {
+      const s = Math.floor(ms / 1000), m = Math.floor(s / 60), h = Math.floor(m / 60), d = Math.floor(h / 24);
+      if (d > 0) return d + 'd ' + String(h % 24).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+      return String(h).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+    }
+
+    function updateClock() {
+      const now = new Date();
+      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      document.getElementById('clockTime').textContent =
+        String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0') + ':' + String(now.getSeconds()).padStart(2, '0');
+      document.getElementById('clockDate').textContent =
+        days[now.getDay()] + ', ' + months[now.getMonth()] + ' ' + now.getDate() + ' ' + now.getFullYear();
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    let initialLoaded = false;
+
+    async function fetchStatus() {
+      try {
+        const res = await fetch('/status');
+        if (res.redirected) { window.location.reload(); return; }
+        const d = await res.json();
+
+        document.getElementById('ipAddr').textContent = d.ip || '?';
+        document.getElementById('networkType').textContent = d.network || 'WiFi';
+        document.getElementById('loraRadioStatus').textContent = d.loraReady ? 'Active (RX)' : 'Not Detected';
+
+        const st = typeof d.state === 'number' ? d.state : 0;
+        const badge = document.getElementById('systemStateBadge');
+        badge.textContent = 'Last Main State: ' + (STATE_NAMES[st] || 'NORMAL');
+        badge.className = STATE_CLASSES[st] || 'state-normal';
+
+        document.getElementById('loraRxCount').textContent = d.loraCount !== undefined ? d.loraCount : 0;
+        document.getElementById('loraLastRssi').textContent = (d.loraCount > 0 && d.loraRssi !== undefined) ? (d.loraRssi + ' dBm') : '--';
+
+        const wb = document.getElementById('wifiConnBadge');
+        if (d.wifiConnected) {
+          wb.textContent = '\u25cf Connected (' + (d.ssid || 'WiFi') + ')';
+          wb.className = 'mqtt-conn-badge connected';
+        } else {
+          wb.textContent = '\u25cf AP Mode (' + (d.apSsid || 'ESP32-AP') + ')';
+          wb.className = 'mqtt-conn-badge disconnected';
+        }
+
+        if (!initialLoaded) {
+          initialLoaded = true;
+          if (d.configuredSsid) document.getElementById('wifiSsid').value = d.configuredSsid;
+          if (d.currentUser) {
+            document.getElementById('authUserBadge').textContent = 'User: ' + d.currentUser;
+            document.getElementById('authUsername').value = d.currentUser;
+          }
+        }
+      } catch (e) { console.error(e); }
+    }
+
+    async function fetchHealth() {
+      try {
+        const res = await fetch('/getHealth');
+        if (res.redirected) { window.location.reload(); return; }
+        const h = await res.json();
+        const t = document.getElementById('hpTemp');
+        if (typeof h.temp === 'number') {
+          t.textContent = h.temp.toFixed(1) + ' \u00b0C';
+          t.className = 'mc-value ' + (h.temp >= 80 ? 'red' : h.temp >= 65 ? 'amber' : 'green');
+        }
+        const he = document.getElementById('hpHeap');
+        if (typeof h.freeHeap === 'number') {
+          he.textContent = (h.freeHeap / 1024).toFixed(1) + ' KB';
+          he.className = 'mc-value ' + (h.freeHeap < 20000 ? 'red' : h.freeHeap < 50000 ? 'amber' : 'green');
+        }
+        const rs = document.getElementById('hpRssi');
+        if (typeof h.rssi === 'number') {
+          rs.textContent = h.rssi + ' dBm';
+          rs.className = 'mc-value ' + (h.rssi < -80 ? 'red' : h.rssi < -65 ? 'amber' : 'green');
+        }
+        document.getElementById('hpCpu').textContent = typeof h.cpuFreq === 'number' ? h.cpuFreq + ' MHz' : '--';
+        document.getElementById('hpUptime').textContent = typeof h.uptime === 'number' ? fmtUptime(h.uptime) : '--';
+      } catch (e) { console.error(e); }
+    }
+
+    async function scanWifiNetworks() {
+      const btn = document.getElementById('btnScanWifi');
+      const msg = document.getElementById('wifiMsg');
+      btn.disabled = true;
+      msg.style.color = '#555';
+      msg.textContent = 'Scanning...';
+      try {
+        const res = await fetch('/scanWifi');
+        const list = await res.json();
+        const sel = document.getElementById('wifiScanSelect');
+        sel.innerHTML = '<option value="">-- Select scanned SSID (' + list.length + ' found) --</option>';
+        list.forEach(item => {
+          const opt = document.createElement('option');
+          opt.value = item.ssid;
+          opt.textContent = item.ssid + ' (' + item.rssi + ' dBm)';
+          sel.appendChild(opt);
+        });
+        document.getElementById('scanRow').style.display = '';
+        msg.style.color = '#16a34a';
+        msg.textContent = 'Found ' + list.length + ' networks.';
+      } catch (e) {
+        msg.style.color = '#dc2626';
+        msg.textContent = 'Scan failed.';
+      }
+      btn.disabled = false;
+    }
+
+    async function saveWifi(e) {
+      e.preventDefault();
+      const msg = document.getElementById('wifiMsg');
+      msg.style.color = '#555';
+      msg.textContent = 'Saving & connecting...';
+      const body = new URLSearchParams({
+        ssid: document.getElementById('wifiSsid').value.trim(),
+        pass: document.getElementById('wifiPass').value
+      });
+      try {
+        const r = await fetch('/saveWifi', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: body.toString()
+        });
+        const txt = await r.text();
+        if (r.ok) {
+          msg.style.color = '#16a34a';
+          msg.textContent = txt || 'Wi-Fi saved! Reconnecting...';
+          document.getElementById('wifiPass').value = '';
+          setTimeout(fetchStatus, 3000);
+        } else {
+          msg.style.color = '#dc2626';
+          msg.textContent = txt || 'Save failed.';
+        }
+      } catch (err) {
+        msg.style.color = '#dc2626';
+        msg.textContent = 'Reconnecting Wi-Fi...';
+      }
+    }
+
+    async function saveAuth(e) {
+      e.preventDefault();
+      const msg = document.getElementById('authMsg');
+      const newPass = document.getElementById('authNewPass').value;
+      const confirmPass = document.getElementById('authConfirmPass').value;
+      if (newPass !== confirmPass) {
+        msg.style.color = '#dc2626';
+        msg.textContent = 'New passwords do not match!';
+        return;
+      }
+      msg.style.color = '#555';
+      msg.textContent = 'Updating...';
+      const body = new URLSearchParams({
+        username: document.getElementById('authUsername').value.trim(),
+        currentPass: document.getElementById('authCurPass').value,
+        newPass: newPass
+      });
+      try {
+        const r = await fetch('/saveAuth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: body.toString()
+        });
+        const txt = await r.text();
+        if (r.ok) {
+          msg.style.color = '#16a34a';
+          msg.textContent = 'Credentials updated!';
+          document.getElementById('authCurPass').value = '';
+          document.getElementById('authNewPass').value = '';
+          document.getElementById('authConfirmPass').value = '';
+          document.getElementById('authUserBadge').textContent = 'User: ' + document.getElementById('authUsername').value.trim();
+        } else {
+          msg.style.color = '#dc2626';
+          msg.textContent = txt || 'Authentication update failed.';
+        }
+      } catch (err) {
+        msg.style.color = '#dc2626';
+        msg.textContent = 'Network error.';
+      }
+    }
+
+    setInterval(() => { if (document.visibilityState !== 'hidden') fetchStatus(); }, 1500);
+    setInterval(() => { if (document.visibilityState !== 'hidden') fetchHealth(); }, 2000);
+    fetchStatus();
+    fetchHealth();
+  </script>
+</body>
+
+</html>

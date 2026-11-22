@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>System Update — Smart Laboratory Monitoring System</title>
+  <link rel="stylesheet" href="/style.css">
+  <script>
+    (function () {
+      if (localStorage.getItem('theme') === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
+</head>
+
+<body>
+
+  <nav class="topnav">
+    <a href="/" class="topnav-brand">Smart Laboratory Monitoring System</a>
+    <div class="topnav-links">
+      <a href="/" class="nav-link">Dashboard</a>
+      <a href="/iot" class="nav-link">IoT Configuration</a>
+      <a href="/telegram" class="nav-link">Telegram</a>
+      <a href="/update" class="nav-link active">System Update</a>
+    </div>
+    <div class="topnav-right">
+      <button type="button" class="theme-switch" id="themeToggle" title="Toggle Theme"></button>
+      <a href="/logout" class="btn-logout">Logout</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="dash-header" style="text-align: center; justify-content: center;">
+      <h1 class="dash-title">System Update</h1>
+    </div>
+
+    <div class="tg-status-banner ok" id="otaBanner">
+      <span class="tg-status-dot" id="otaDot" style="color:#16a34a;">&#9679;</span>
+      <span id="otaBannerText">Gateway System Update ready.</span>
+    </div>
+
+    <div class="io-wrapper" style="margin-top: 20px;">
+      <div class="io-box"
+        style="flex: 1; display: flex; flex-direction: column; align-items: center; max-width: 640px; margin: 0 auto; text-align: left; gap: 14px;">
+        <div style="width: 100%;">
+          <h2 style="margin:0; font-size:15px; text-transform: uppercase; border: none; padding: 0;">CHECK FOR UPDATE</h2>
+          <p style="font-size:13px;color:var(--text-muted);margin:5px 0 0 0;">
+            Check remote repository for newer Gateway Firmware and LittleFS versions on demand.
+          </p>
+        </div>
+        <div style="width: 100%; display: flex; justify-content: center;">
+          <button type="button" class="btn-save-formula" id="btnCheckUpdate" onclick="triggerCheckUpdate()">
+            Check for Update
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="io-wrapper" style="margin-top: 20px;">
+      <!-- Firmware Update Box -->
+      <div class="io-box" style="flex: 1;">
+        <h2>Firmware Update</h2>
+        <div style="font-size:12px;color:var(--text-main);margin-bottom:8px;font-weight:600;">
+          Current Version: <span id="fwVerDisp" style="color:#2563eb;">Loading...</span>
+        </div>
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:15px;">
+          Upload a compiled <b>.bin</b> file to update the ESP32 Super Mini Gateway code (gateway_node.ino.bin).
+        </p>
+        <form id="fwForm"
+          onsubmit="event.preventDefault(); startUpdate('fwForm', '/update/firmware', 'fwProgress', 'fwStatus');">
+          <input type="file" name="update" accept=".bin" required
+            style="margin: 0 auto 15px auto; display: block; width: fit-content;">
+          <button class="btn-save-formula" type="submit">Update Firmware</button>
+        </form>
+        <div style="margin-top: 15px;">
+          <progress id="fwProgress" value="0" max="100" style="width:100%; display:none;"></progress>
+          <div id="fwStatus" style="font-size:13px;font-weight:600;margin-top:5px;"></div>
+        </div>
+      </div>
+
+      <!-- Filesystem Update Box -->
+      <div class="io-box" style="flex: 1;">
+        <h2>Filesystem Update (LittleFS)</h2>
+        <div style="font-size:12px;color:var(--text-main);margin-bottom:8px;font-weight:600;">
+          Current Version: <span id="fsVerDisp" style="color:#2563eb;">Loading...</span>
+        </div>
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:15px;">
+          Upload a <b>LittleFS.bin</b> file to update the web interface files (HTML, CSS, JS).
+        </p>
+        <form id="fsForm"
+          onsubmit="event.preventDefault(); startUpdate('fsForm', '/update/filesystem', 'fsProgress', 'fsStatus');">
+          <input type="file" name="update" accept=".bin" required
+            style="margin: 0 auto 15px auto; display: block; width: fit-content;">
+          <button class="btn-save-formula" type="submit">Update Filesystem</button>
+        </form>
+        <div style="margin-top: 15px;">
+          <progress id="fsProgress" value="0" max="100" style="width:100%; display:none;"></progress>
+          <div id="fsStatus" style="font-size:13px;font-weight:600;margin-top:5px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="site-footer">&copy; Smart Laboratory Monitoring System. All rights reserved.</div>
+  </div>
+
+  <script src="/app.js"></script>
+  <script>
+    function startUpdate(formId, url, progressId, statusId) {
+      const form = document.getElementById(formId);
+      const fileInput = form.querySelector('input[type="file"]');
+      if (fileInput.files.length === 0) return;
+
+      const progress = document.getElementById(progressId);
+      const status = document.getElementById(statusId);
+      const formData = new FormData(form);
+
+      progress.style.display = 'block';
+      progress.value = 0;
+      status.textContent = 'Uploading... Please wait (Do NOT close page).';
+      status.style.color = 'var(--text-main)';
+
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', url, true);
+      xhr.withCredentials = true;
+
+      xhr.upload.onprogress = function (e) {
+        if (e.lengthComputable) {
+          progress.value = (e.loaded / e.total) * 100;
+        }
+      };
+
+      xhr.onload = function () {
+        if (xhr.status === 200) {
+          status.textContent = 'Update successful! Gateway is rebooting...';
+          status.style.color = '#16a34a';
+          setTimeout(() => { window.location.href = '/'; }, 10000);
+        } else {
+          status.textContent = 'Update rejected/failed: ' + xhr.responseText;
+          status.style.color = '#dc2626';
+        }
+      };
+
+      xhr.onerror = function () {
+        status.textContent = 'Update failed due to network error.';
+        status.style.color = '#dc2626';
+      };
+
+      xhr.send(formData);
+    }
+
+    async function triggerCheckUpdate() {
+      const btn = document.getElementById('btnCheckUpdate');
+      const banner = document.getElementById('otaBanner');
+      const dot = document.getElementById('otaDot');
+      const txt = document.getElementById('otaBannerText');
+
+      btn.disabled = true;
+      banner.className = 'tg-status-banner warn';
+      dot.style.color = '#d97706';
+      txt.textContent = 'Checking remote repository for updates...';
+
+      try {
+        const res = await fetch('/checkUpdate', { method: 'POST' });
+        const msg = await res.text();
+        if (res.ok) {
+          banner.className = 'tg-status-banner ok';
+          dot.style.color = '#16a34a';
+          txt.textContent = msg;
+        } else {
+          banner.className = 'tg-status-banner err';
+          dot.style.color = '#dc2626';
+          txt.textContent = msg;
+        }
+      } catch (e) {
+        banner.className = 'tg-status-banner err';
+        dot.style.color = '#dc2626';
+        txt.textContent = 'Network error while requesting update check.';
+      }
+      setTimeout(() => { btn.disabled = false; }, 3000);
+    }
+
+    async function fetchVersions() {
+      try {
+        const res = await fetch('/getHealth');
+        if (res.redirected) { window.location.reload(); return; }
+        const h = await res.json();
+        if (h.fw_ver !== undefined) document.getElementById('fwVerDisp').textContent = 'v' + Number(h.fw_ver).toFixed(1);
+        if (h.fs_ver !== undefined) document.getElementById('fsVerDisp').textContent = 'v' + Number(h.fs_ver).toFixed(1);
+        if (h.otaStatus && h.otaStatus.length > 0) {
+          const banner = document.getElementById('otaBanner');
+          const dot = document.getElementById('otaDot');
+          const txt = document.getElementById('otaBannerText');
+          txt.textContent = h.otaStatus;
+          if (h.otaStatus.indexOf('failed') !== -1 || h.otaStatus.indexOf('blocked') !== -1) {
+            banner.className = 'tg-status-banner err';
+            dot.style.color = '#dc2626';
+          } else if (h.otaStatus.indexOf('Checking') !== -1 || h.otaStatus.indexOf('Downloading') !== -1) {
+            banner.className = 'tg-status-banner warn';
+            dot.style.color = '#d97706';
+          } else {
+            banner.className = 'tg-status-banner ok';
+            dot.style.color = '#16a34a';
+          }
+        }
+      } catch (e) { console.error(e); }
+    }
+
+    fetchVersions();
+    setInterval(() => { if (document.visibilityState !== 'hidden') fetchVersions(); }, 2500);
+  </script>
+</body>
+
+</html>

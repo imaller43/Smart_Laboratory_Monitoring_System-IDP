@@ -21,21 +21,27 @@ firmware/
 │       ├── telegram.json               # Default Telegram bot settings
 │       ├── users.json                  # Default login credentials (admin / admin123)
 │       └── fs_version.txt              # LittleFS image version
+├── gateway_node/                       # ESP32 Super Mini 433MHz LoRa Fallback Gateway & LittleFS GUI
+│   ├── gateway_node.ino                # LoRa RX (SCK=4, MISO=5, MOSI=6, CS=7, RST=3, DIO0=10) -> MQTT/Telegram
+│   ├── pins.h                          # Super Mini LoRa SPI & Status LED Pinout (from docs/BluePrint.md)
+│   └── data/                           # LittleFS Web GUI Files (Upload via Ctrl+Shift+P -> Upload LittleFS)
 ├── tests/
 │   └── polarity_and_hardware_test/     # Bench diagnostic sketch for I2C scan + Flame/Relay polarity check
 └── .gitignore
 ```
 
 ## Quick Start in Arduino IDE 2.3.11
-1. Open [`main_node/main_node.ino`](./main_node/main_node.ino) in **Arduino IDE 2.3.11**.
-2. Configure **Tools** menu:
-   - **Board:** `ESP32S3 Dev Module`
-   - **Flash Size:** `16MB (128Mb)` (`QIO 80MHz`)
-   - **PSRAM:** `OPI PSRAM`
-   - **Partition Scheme:** `Custom` (automatically uses `main_node/partitions.csv`)
-   - **USB CDC On Boot:** `Enabled` (if connected to native `USB` port) or `Disabled` (if connected to `UART`/`COM` port)
-3. **Upload Firmware:** Click **Upload** (`Ctrl + U`).
-4. **Upload LittleFS Web GUI:** Close the Serial Monitor, press `Ctrl + Shift + P`, and select **`Upload LittleFS to Pico/ESP8266/ESP32`**.
-5. **Connect & Log In:**
-   - If Wi-Fi is not configured yet, connect to the ESP32 Access Point **`LabSafety-S3-Setup`** (password: `12345678`) and open `http://192.168.4.1`.
-   - Default login: **`admin`** / **`admin123`**.
+
+### 1. Main Node (`ESP32-S3-N16R8`) — [`main_node/main_node.ino`](./main_node/main_node.ino)
+- **Board:** `ESP32S3 Dev Module`
+- **Flash Size:** `16MB (128Mb)` (`QIO 80MHz`)
+- **PSRAM:** `OPI PSRAM`
+- **Partition Scheme:** `Custom` (uses `main_node/partitions.csv`)
+- **Fallback AP:** `LabSafety-S3-Setup` (password: `12345678`, IP: `http://192.168.4.1`, login: `admin` / `admin123`)
+
+### 2. Gateway Node (`ESP32 Super Mini`) — [`gateway_node/gateway_node.ino`](./gateway_node/gateway_node.ino)
+- **Board:** `ESP32C3 Dev Module` (or `ESP32S3 Dev Module` if using an S3 Super Mini)
+- **USB CDC On Boot:** `Enabled`
+- **Flash Size:** `4MB (32Mb)`
+- **Partition Scheme:** `Default 4MB with spiffs (1.2MB APP/1.5MB SPIFFS)`
+- **Fallback AP:** `LabSafety-GW-Setup` (password: `12345678`, IP: `http://192.168.4.1`, login: `admin` / `admin123`)
