@@ -97,19 +97,18 @@ Create a **new dedicated tunnel** (separate from your Raspberry Pi 4 tunnel):
 1. Open **Cloudflare Zero Trust Dashboard → Networks → Tunnels → Create a tunnel**.
 2. Choose **Cloudflared** and name it **`azure-lab-safety`**.
 3. Copy the **Docker Tunnel Token** (the long string starting with `eyJh...` after `--token `) — you will paste this into `backend/.env` in Step 4.
-4. Add these **Public Hostname** routes **in this exact order** (order matters for `lab-api.ikmaliman.my` path matching!):
+4. Add these **Published application** routes (note Cloudflare's single **Service URL** field requires `http://` and **Path** uses regex starting with `^/`):
 
-| # | Subdomain | Domain | Path | Service Type | URL |
-| :-: | :--- | :--- | :--- | :--- | :--- |
-| 1 | `lab-mqtt` | `ikmaliman.my` | `mqtt` | `HTTP` | `mosquitto:8083` |
-| 2 | `lab-api` | `ikmaliman.my` | `api` | `HTTP` | `nodered:1880` |
-| 3 | `lab-api` | `ikmaliman.my` | `ws` | `HTTP` | `nodered:1880` |
-| 4 | `lab-api` | `ikmaliman.my` | *(leave blank)* | `HTTP_STATUS` | `404` |
-| 5 | `lab-nodered` | `ikmaliman.my` | *(leave blank)* | `HTTP` | `nodered:1880` |
-| 6 | `lab-influx` | `ikmaliman.my` | *(leave blank)* | `HTTP` | `influxdb:8086` |
+| # | Subdomain | Domain | Path (optional) | Service URL |
+| :-: | :--- | :--- | :--- | :--- |
+| 1 | `lab-mqtt` | `ikmaliman.my` | `^/mqtt` | `http://mosquitto:8083` |
+| 2 | `lab-api` | `ikmaliman.my` | `^/api` | `http://nodered:1880` |
+| 3 | `lab-api` | `ikmaliman.my` | `^/ws` | `http://nodered:1880` |
+| 4 | `lab-nodered` | `ikmaliman.my` | *(leave blank)* | `http://nodered:1880` |
+| 5 | `lab-influx` | `ikmaliman.my` | *(leave blank)* | `http://influxdb:8086` |
 
-> **Why Route #4 (`HTTP_STATUS 404`) matters:**
-> It ensures Node-RED's `/admin` Flow Editor can **never** be reached through `lab-api.ikmaliman.my`, while `/api/*` and `/ws/*` remain accessible for your Netlify dashboard.
+> **Why `lab-api.ikmaliman.my/admin` is automatically blocked (404):**
+> Cloudflare Tunnel automatically adds a built-in `404` catch-all at the bottom of every tunnel, so any path on `lab-api.ikmaliman.my` that doesn't start with `/api` or `/ws` returns `404` automatically—no separate `HTTP_STATUS` route is needed!
 
 ### Lock Down Admin UIs with Cloudflare Zero Trust Access
 Go to **Zero Trust → Access → Applications → Add an application → Self-hosted** and create Access policies (e.g., **Allow → Emails: your team emails**, using One-Time PIN) for these **two admin subdomains ONLY**:

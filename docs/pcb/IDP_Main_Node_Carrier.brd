@@ -1,0 +1,420 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eagle version="7.7.0">
+<drawing>
+<settings><setting alwaysvectorfont="no"/><setting verticaltext="up"/></settings>
+<grid distance="1.27" unitdist="mm" unit="mm" style="lines" multiple="1" display="yes" altdistance="0.254" altunitdist="mm" altunit="mm"/>
+<layers>
+<layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
+<layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="yes"/>
+<layer number="17" name="Pads" color="2" fill="1" visible="yes" active="yes"/>
+<layer number="18" name="Vias" color="2" fill="1" visible="yes" active="yes"/>
+<layer number="19" name="Unrouted" color="6" fill="1" visible="yes" active="yes"/>
+<layer number="20" name="Dimension" color="15" fill="1" visible="yes" active="yes"/>
+<layer number="21" name="tPlace" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="22" name="bPlace" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="25" name="tNames" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="26" name="bNames" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="27" name="tValues" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="28" name="bValues" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="45" name="Holes" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="51" name="tDocu" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="91" name="Nets" color="2" fill="1" visible="yes" active="yes"/>
+<layer number="92" name="Busses" color="1" fill="1" visible="yes" active="yes"/>
+<layer number="93" name="Pins" color="2" fill="1" visible="no" active="yes"/>
+<layer number="94" name="Symbols" color="4" fill="1" visible="yes" active="yes"/>
+<layer number="95" name="Names" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="96" name="Values" color="7" fill="1" visible="yes" active="yes"/>
+</layers>
+<board><plain>
+<wire x1="0" y1="0" x2="98" y2="0" width="0.2" layer="20"/>
+<wire x1="98" y1="0" x2="98" y2="85" width="0.2" layer="20"/>
+<wire x1="98" y1="85" x2="0" y2="85" width="0.2" layer="20"/>
+<wire x1="0" y1="85" x2="0" y2="0" width="0.2" layer="20"/>
+<hole x="4.0" y="4.0" drill="3.2"/>
+<hole x="94" y="4.0" drill="3.2"/>
+<hole x="4.0" y="81" drill="3.2"/>
+<hole x="94" y="81" drill="3.2"/>
+<text x="9.0" y="81.0" size="1.6" layer="21">IDP SMART LAB SAFETY - MAIN NODE v1.0 (98x85mm)</text>
+<text x="37.0" y="73.0" size="1.3" layer="21">WIFI ANTENNA END (TOP)</text>
+<text x="37.5" y="6.0" size="1.3" layer="21">DUAL USB-C PORTS (BOTTOM)</text>
+<text x="4.0" y="54.0" size="1.1" layer="21">TUNE LM2596 TO 5.10V FIRST!</text>
+<text x="70.0" y="81.0" size="1.2" layer="21">ISOLATED 3.3V LORA RF</text>
+<text x="69.0" y="41.5" size="1.1" layer="21">I2C BUS (CHECK OLED PIN 1!)</text>
+</plain><libraries><library name="IDP_Lab_Safety">
+<packages>
+<package name="HDR_1X22">
+<wire x1="-1.35" y1="1.27" x2="1.35" y2="1.27" width="0.15" layer="21"/>
+<wire x1="1.35" y1="1.27" x2="1.35" y2="-54.61" width="0.15" layer="21"/>
+<wire x1="1.35" y1="-54.61" x2="-1.35" y2="-54.61" width="0.15" layer="21"/>
+<wire x1="-1.35" y1="-54.61" x2="-1.35" y2="1.27" width="0.15" layer="21"/>
+<pad name="1" x="0" y="0" drill="1" diameter="1.75" shape="square"/>
+<pad name="2" x="0" y="-2.54" drill="1" diameter="1.75" shape="round"/>
+<pad name="3" x="0" y="-5.08" drill="1" diameter="1.75" shape="round"/>
+<pad name="4" x="0" y="-7.62" drill="1" diameter="1.75" shape="round"/>
+<pad name="5" x="0" y="-10.16" drill="1" diameter="1.75" shape="round"/>
+<pad name="6" x="0" y="-12.7" drill="1" diameter="1.75" shape="round"/>
+<pad name="7" x="0" y="-15.24" drill="1" diameter="1.75" shape="round"/>
+<pad name="8" x="0" y="-17.78" drill="1" diameter="1.75" shape="round"/>
+<pad name="9" x="0" y="-20.32" drill="1" diameter="1.75" shape="round"/>
+<pad name="10" x="0" y="-22.86" drill="1" diameter="1.75" shape="round"/>
+<pad name="11" x="0" y="-25.4" drill="1" diameter="1.75" shape="round"/>
+<pad name="12" x="0" y="-27.94" drill="1" diameter="1.75" shape="round"/>
+<pad name="13" x="0" y="-30.48" drill="1" diameter="1.75" shape="round"/>
+<pad name="14" x="0" y="-33.02" drill="1" diameter="1.75" shape="round"/>
+<pad name="15" x="0" y="-35.56" drill="1" diameter="1.75" shape="round"/>
+<pad name="16" x="0" y="-38.1" drill="1" diameter="1.75" shape="round"/>
+<pad name="17" x="0" y="-40.64" drill="1" diameter="1.75" shape="round"/>
+<pad name="18" x="0" y="-43.18" drill="1" diameter="1.75" shape="round"/>
+<pad name="19" x="0" y="-45.72" drill="1" diameter="1.75" shape="round"/>
+<pad name="20" x="0" y="-48.26" drill="1" diameter="1.75" shape="round"/>
+<pad name="21" x="0" y="-50.8" drill="1" diameter="1.75" shape="round"/>
+<pad name="22" x="0" y="-53.34" drill="1" diameter="1.75" shape="round"/>
+<text x="-1.35" y="2.07" size="1.0" layer="25">&gt;NAME</text>
+<text x="-1.35" y="-56.41" size="0.8" layer="27">&gt;VALUE</text>
+</package>
+<package name="HDR_1X8">
+<wire x1="-1.35" y1="1.27" x2="1.35" y2="1.27" width="0.15" layer="21"/>
+<wire x1="1.35" y1="1.27" x2="1.35" y2="-19.05" width="0.15" layer="21"/>
+<wire x1="1.35" y1="-19.05" x2="-1.35" y2="-19.05" width="0.15" layer="21"/>
+<wire x1="-1.35" y1="-19.05" x2="-1.35" y2="1.27" width="0.15" layer="21"/>
+<pad name="1" x="0" y="0" drill="1" diameter="1.75" shape="square"/>
+<pad name="2" x="0" y="-2.54" drill="1" diameter="1.75" shape="round"/>
+<pad name="3" x="0" y="-5.08" drill="1" diameter="1.75" shape="round"/>
+<pad name="4" x="0" y="-7.62" drill="1" diameter="1.75" shape="round"/>
+<pad name="5" x="0" y="-10.16" drill="1" diameter="1.75" shape="round"/>
+<pad name="6" x="0" y="-12.7" drill="1" diameter="1.75" shape="round"/>
+<pad name="7" x="0" y="-15.24" drill="1" diameter="1.75" shape="round"/>
+<pad name="8" x="0" y="-17.78" drill="1" diameter="1.75" shape="round"/>
+<text x="-1.35" y="2.07" size="1.0" layer="25">&gt;NAME</text>
+<text x="-1.35" y="-20.85" size="0.8" layer="27">&gt;VALUE</text>
+</package>
+<package name="HDR_1X5">
+<wire x1="-1.35" y1="1.27" x2="1.35" y2="1.27" width="0.15" layer="21"/>
+<wire x1="1.35" y1="1.27" x2="1.35" y2="-11.43" width="0.15" layer="21"/>
+<wire x1="1.35" y1="-11.43" x2="-1.35" y2="-11.43" width="0.15" layer="21"/>
+<wire x1="-1.35" y1="-11.43" x2="-1.35" y2="1.27" width="0.15" layer="21"/>
+<pad name="1" x="0" y="0" drill="1" diameter="1.75" shape="square"/>
+<pad name="2" x="0" y="-2.54" drill="1" diameter="1.75" shape="round"/>
+<pad name="3" x="0" y="-5.08" drill="1" diameter="1.75" shape="round"/>
+<pad name="4" x="0" y="-7.62" drill="1" diameter="1.75" shape="round"/>
+<pad name="5" x="0" y="-10.16" drill="1" diameter="1.75" shape="round"/>
+<text x="-1.35" y="2.07" size="1.0" layer="25">&gt;NAME</text>
+<text x="-1.35" y="-13.23" size="0.8" layer="27">&gt;VALUE</text>
+</package>
+<package name="HDR_1X4">
+<wire x1="-1.35" y1="1.27" x2="1.35" y2="1.27" width="0.15" layer="21"/>
+<wire x1="1.35" y1="1.27" x2="1.35" y2="-8.89" width="0.15" layer="21"/>
+<wire x1="1.35" y1="-8.89" x2="-1.35" y2="-8.89" width="0.15" layer="21"/>
+<wire x1="-1.35" y1="-8.89" x2="-1.35" y2="1.27" width="0.15" layer="21"/>
+<pad name="1" x="0" y="0" drill="1" diameter="1.75" shape="square"/>
+<pad name="2" x="0" y="-2.54" drill="1" diameter="1.75" shape="round"/>
+<pad name="3" x="0" y="-5.08" drill="1" diameter="1.75" shape="round"/>
+<pad name="4" x="0" y="-7.62" drill="1" diameter="1.75" shape="round"/>
+<text x="-1.35" y="2.07" size="1.0" layer="25">&gt;NAME</text>
+<text x="-1.35" y="-10.69" size="0.8" layer="27">&gt;VALUE</text>
+</package>
+<package name="HDR_1X3">
+<wire x1="-1.35" y1="1.27" x2="1.35" y2="1.27" width="0.15" layer="21"/>
+<wire x1="1.35" y1="1.27" x2="1.35" y2="-6.35" width="0.15" layer="21"/>
+<wire x1="1.35" y1="-6.35" x2="-1.35" y2="-6.35" width="0.15" layer="21"/>
+<wire x1="-1.35" y1="-6.35" x2="-1.35" y2="1.27" width="0.15" layer="21"/>
+<pad name="1" x="0" y="0" drill="1" diameter="1.75" shape="square"/>
+<pad name="2" x="0" y="-2.54" drill="1" diameter="1.75" shape="round"/>
+<pad name="3" x="0" y="-5.08" drill="1" diameter="1.75" shape="round"/>
+<text x="-1.35" y="2.07" size="1.0" layer="25">&gt;NAME</text>
+<text x="-1.35" y="-8.15" size="0.8" layer="27">&gt;VALUE</text>
+</package>
+<package name="KF301_2P_508">
+<wire x1="-4" y1="3" x2="4" y2="3" width="0.15" layer="21"/>
+<wire x1="4" y1="3" x2="4" y2="-8.08" width="0.15" layer="21"/>
+<wire x1="4" y1="-8.08" x2="-4" y2="-8.08" width="0.15" layer="21"/>
+<wire x1="-4" y1="-8.08" x2="-4" y2="3" width="0.15" layer="21"/>
+<pad name="1" x="0" y="0" drill="1.3" diameter="2.4" shape="square"/>
+<pad name="2" x="0" y="-5.08" drill="1.3" diameter="2.4" shape="round"/>
+<text x="-4" y="3.6" size="1.0" layer="25">&gt;NAME</text>
+<text x="-4" y="-9.8" size="0.8" layer="27">&gt;VALUE</text>
+</package>
+<package name="CAP_ELEC_10MM_P500">
+<circle x="0" y="0" radius="5" width="0.15" layer="21"/>
+<text x="-3.75" y="0.9" size="1.27" layer="21">+</text>
+<pad name="1" x="-2.5" y="0" drill="1" diameter="2" shape="square"/>
+<pad name="2" x="2.5" y="0" drill="1" diameter="2" shape="round"/>
+<text x="-5" y="5.8" size="1.0" layer="25">&gt;NAME</text>
+<text x="-5" y="-6.8" size="0.8" layer="27">&gt;VALUE</text>
+</package>
+<package name="CAP_RAD_5MM_P254">
+<circle x="0" y="0" radius="2.6" width="0.15" layer="21"/>
+<text x="-1.95" y="0.9" size="1.27" layer="21">+</text>
+<pad name="1" x="-1.27" y="0" drill="0.85" diameter="1.65" shape="square"/>
+<pad name="2" x="1.27" y="0" drill="0.85" diameter="1.65" shape="round"/>
+<text x="-2.6" y="3.4" size="1.0" layer="25">&gt;NAME</text>
+<text x="-2.6" y="-4.4" size="0.8" layer="27">&gt;VALUE</text>
+</package>
+<package name="CAP_DISC_P254">
+<circle x="0" y="0" radius="2" width="0.15" layer="21"/>
+<pad name="1" x="-1.27" y="0" drill="0.85" diameter="1.65" shape="round"/>
+<pad name="2" x="1.27" y="0" drill="0.85" diameter="1.65" shape="round"/>
+<text x="-2" y="2.8" size="1.0" layer="25">&gt;NAME</text>
+<text x="-2" y="-3.8" size="0.8" layer="27">&gt;VALUE</text>
+</package>
+<package name="RES_AXIAL_762">
+<wire x1="-2.5" y1="1.1" x2="2.5" y2="1.1" width="0.15" layer="21"/>
+<wire x1="2.5" y1="1.1" x2="2.5" y2="-1.1" width="0.15" layer="21"/>
+<wire x1="2.5" y1="-1.1" x2="-2.5" y2="-1.1" width="0.15" layer="21"/>
+<wire x1="-2.5" y1="-1.1" x2="-2.5" y2="1.1" width="0.15" layer="21"/>
+<pad name="1" x="-3.81" y="0" drill="0.9" diameter="1.75" shape="square"/>
+<pad name="2" x="3.81" y="0" drill="0.9" diameter="1.75" shape="round"/>
+<text x="-2.5" y="1.6" size="1.0" layer="25">&gt;NAME</text>
+<text x="-2.5" y="-2.6" size="0.8" layer="27">&gt;VALUE</text>
+</package>
+</packages>
+</library></libraries><attributes/><variantdefs/>
+<classes><class number="0" name="default" width="0.3" drill="0"/><class number="1" name="power" width="0.8" drill="0"/></classes>
+<designrules name="default"/><autorouter/><elements>
+<element name="J_12V_IN" library="IDP_Lab_Safety" package="KF301_2P_508" value="12V_DC_IN" x="8" y="76" rot="R0"/>
+<element name="J_SW_MST" library="IDP_Lab_Safety" package="KF301_2P_508" value="MASTER_SW" x="8" y="62" rot="R0"/>
+<element name="J_BUCK_IN" library="IDP_Lab_Safety" package="KF301_2P_508" value="LM2596_IN" x="21" y="76" rot="R0"/>
+<element name="J_BUCK_OUT" library="IDP_Lab_Safety" package="KF301_2P_508" value="5V_STAR_HUB" x="21" y="62" rot="R0"/>
+<element name="J_LOAD_5V" library="IDP_Lab_Safety" package="KF301_2P_508" value="FAN_ATOM_PWR" x="8" y="46" rot="R0"/>
+<element name="J_RELAY" library="IDP_Lab_Safety" package="HDR_1X4" value="2CH_5V_RELAY" x="22" y="46" rot="R0"/>
+<element name="C5" library="IDP_Lab_Safety" package="CAP_ELEC_10MM_P500" value="1000uF_25V" x="11" y="25" rot="R0"/>
+<element name="R1" library="IDP_Lab_Safety" package="RES_AXIAL_762" value="330R" x="23.5" y="14" rot="R90"/>
+<element name="J_LED" library="IDP_Lab_Safety" package="HDR_1X3" value="WS2812B_ARGB" x="10" y="14" rot="R0"/>
+<element name="U1_L" library="IDP_Lab_Safety" package="HDR_1X22" value="ESP32S3_L" x="35.56" y="68.58" rot="R0"/>
+<element name="U1_R" library="IDP_Lab_Safety" package="HDR_1X22" value="ESP32S3_R_25M4" x="60.96" y="68.58" rot="R0"/>
+<element name="U1_R_ALT" library="IDP_Lab_Safety" package="HDR_1X22" value="ESP32S3_R_22M8" x="58.42" y="68.58" rot="R0"/>
+<element name="U_AMS" library="IDP_Lab_Safety" package="HDR_1X3" value="AMS1117_3V3" x="68.58" y="76.2" rot="R0"/>
+<element name="C1" library="IDP_Lab_Safety" package="CAP_RAD_5MM_P254" value="10uF" x="74.93" y="76.2" rot="R0"/>
+<element name="C2" library="IDP_Lab_Safety" package="CAP_DISC_P254" value="100nF" x="74.93" y="70.5" rot="R0"/>
+<element name="C3" library="IDP_Lab_Safety" package="CAP_RAD_5MM_P254" value="22uF_Tant" x="82.55" y="76.2" rot="R0"/>
+<element name="C4" library="IDP_Lab_Safety" package="CAP_DISC_P254" value="100nF_LoRa" x="68.58" y="65.5" rot="R0"/>
+<element name="U_LORA_L" library="IDP_Lab_Safety" package="HDR_1X8" value="RA02_ADP_L" x="69.85" y="60.96" rot="R0"/>
+<element name="U_LORA_R" library="IDP_Lab_Safety" package="HDR_1X8" value="RA02_ADP_R" x="92.71" y="60.96" rot="R0"/>
+<element name="J_LORA_UNI" library="IDP_Lab_Safety" package="HDR_1X8" value="LORA_SPI_8P" x="81.28" y="60.96" rot="R0"/>
+<element name="J_BME280" library="IDP_Lab_Safety" package="HDR_1X4" value="BME280_I2C" x="69.85" y="38.1" rot="R0"/>
+<element name="J_SGP30" library="IDP_Lab_Safety" package="HDR_1X4" value="SGP30_I2C" x="77.47" y="38.1" rot="R0"/>
+<element name="J_OLED_VCC" library="IDP_Lab_Safety" package="HDR_1X4" value="OLED_VCC_1ST" x="85.09" y="38.1" rot="R0"/>
+<element name="J_OLED_GND" library="IDP_Lab_Safety" package="HDR_1X4" value="OLED_GND_1ST" x="92.71" y="38.1" rot="R0"/>
+<element name="J_RADAR" library="IDP_Lab_Safety" package="HDR_1X5" value="HLK_LD2410C" x="69.85" y="20.32" rot="R0"/>
+<element name="J_FLAME" library="IDP_Lab_Safety" package="HDR_1X4" value="IR_FLAME" x="80.01" y="20.32" rot="R0"/>
+<element name="J_BUZZER" library="IDP_Lab_Safety" package="HDR_1X3" value="ACT_BUZZER_3V3" x="90.17" y="20.32" rot="R0"/>
+</elements><signals>
+<signal name="+12V_RAW" class="1">
+<contactref element="J_12V_IN" pad="1"/>
+<contactref element="J_SW_MST" pad="1"/>
+</signal>
+<signal name="+12V_SW" class="1">
+<contactref element="J_SW_MST" pad="2"/>
+<contactref element="J_BUCK_IN" pad="1"/>
+</signal>
+<signal name="+5V_MAIN" class="1">
+<contactref element="J_BUCK_OUT" pad="1"/>
+<contactref element="U1_L" pad="21"/>
+<contactref element="J_LOAD_5V" pad="1"/>
+<contactref element="J_RELAY" pad="4"/>
+<contactref element="C5" pad="1"/>
+<contactref element="J_LED" pad="1"/>
+<contactref element="J_RADAR" pad="5"/>
+<contactref element="U_AMS" pad="1"/>
+<contactref element="C1" pad="1"/>
+<contactref element="C2" pad="1"/>
+</signal>
+<signal name="+3V3_LORA" class="1">
+<contactref element="U_AMS" pad="3"/>
+<contactref element="C3" pad="1"/>
+<contactref element="C4" pad="1"/>
+<contactref element="U_LORA_L" pad="2"/>
+<contactref element="J_LORA_UNI" pad="1"/>
+</signal>
+<signal name="+3V3_ESP" class="1">
+<contactref element="U1_L" pad="1"/>
+<contactref element="U1_L" pad="2"/>
+<contactref element="J_BME280" pad="1"/>
+<contactref element="J_SGP30" pad="1"/>
+<contactref element="J_OLED_VCC" pad="1"/>
+<contactref element="J_OLED_GND" pad="2"/>
+<contactref element="J_FLAME" pad="1"/>
+<contactref element="J_BUZZER" pad="1"/>
+</signal>
+<signal name="GND" class="1">
+<contactref element="J_12V_IN" pad="2"/>
+<contactref element="J_BUCK_IN" pad="2"/>
+<contactref element="J_BUCK_OUT" pad="2"/>
+<contactref element="J_LOAD_5V" pad="2"/>
+<contactref element="J_RELAY" pad="1"/>
+<contactref element="C5" pad="2"/>
+<contactref element="J_LED" pad="3"/>
+<contactref element="U1_L" pad="22"/>
+<contactref element="U1_R" pad="1"/>
+<contactref element="U1_R" pad="21"/>
+<contactref element="U1_R" pad="22"/>
+<contactref element="U1_R_ALT" pad="1"/>
+<contactref element="U1_R_ALT" pad="21"/>
+<contactref element="U1_R_ALT" pad="22"/>
+<contactref element="U_AMS" pad="2"/>
+<contactref element="C1" pad="2"/>
+<contactref element="C2" pad="2"/>
+<contactref element="C3" pad="2"/>
+<contactref element="C4" pad="2"/>
+<contactref element="U_LORA_L" pad="1"/>
+<contactref element="U_LORA_L" pad="8"/>
+<contactref element="U_LORA_R" pad="1"/>
+<contactref element="J_LORA_UNI" pad="2"/>
+<contactref element="J_BME280" pad="2"/>
+<contactref element="J_SGP30" pad="2"/>
+<contactref element="J_OLED_VCC" pad="2"/>
+<contactref element="J_OLED_GND" pad="1"/>
+<contactref element="J_RADAR" pad="4"/>
+<contactref element="J_FLAME" pad="2"/>
+<contactref element="J_BUZZER" pad="3"/>
+</signal>
+<signal name="I2C_SDA_IO8" class="0">
+<contactref element="U1_L" pad="12"/>
+<contactref element="J_BME280" pad="4"/>
+<contactref element="J_SGP30" pad="4"/>
+<contactref element="J_OLED_VCC" pad="4"/>
+<contactref element="J_OLED_GND" pad="4"/>
+</signal>
+<signal name="I2C_SCL_IO9" class="0">
+<contactref element="U1_L" pad="15"/>
+<contactref element="J_BME280" pad="3"/>
+<contactref element="J_SGP30" pad="3"/>
+<contactref element="J_OLED_VCC" pad="3"/>
+<contactref element="J_OLED_GND" pad="3"/>
+</signal>
+<signal name="UART_ESP_TX17_TO_RADAR_RX" class="0">
+<contactref element="U1_L" pad="10"/>
+<contactref element="J_RADAR" pad="2"/>
+</signal>
+<signal name="UART_RADAR_TX_TO_ESP_RX18" class="0">
+<contactref element="U1_L" pad="11"/>
+<contactref element="J_RADAR" pad="1"/>
+</signal>
+<signal name="LORA_CS_IO10" class="0">
+<contactref element="U1_L" pad="16"/>
+<contactref element="U_LORA_R" pad="3"/>
+<contactref element="J_LORA_UNI" pad="6"/>
+</signal>
+<signal name="LORA_MOSI_IO11" class="0">
+<contactref element="U1_L" pad="17"/>
+<contactref element="U_LORA_R" pad="4"/>
+<contactref element="J_LORA_UNI" pad="5"/>
+</signal>
+<signal name="LORA_SCK_IO12" class="0">
+<contactref element="U1_L" pad="18"/>
+<contactref element="U_LORA_R" pad="6"/>
+<contactref element="J_LORA_UNI" pad="3"/>
+</signal>
+<signal name="LORA_MISO_IO13" class="0">
+<contactref element="U1_L" pad="19"/>
+<contactref element="U_LORA_R" pad="5"/>
+<contactref element="J_LORA_UNI" pad="4"/>
+</signal>
+<signal name="LORA_RST_IO14" class="0">
+<contactref element="U1_L" pad="20"/>
+<contactref element="U_LORA_L" pad="3"/>
+<contactref element="J_LORA_UNI" pad="7"/>
+</signal>
+<signal name="LORA_DIO0_IO15" class="0">
+<contactref element="U1_L" pad="8"/>
+<contactref element="U_LORA_L" pad="4"/>
+<contactref element="J_LORA_UNI" pad="8"/>
+</signal>
+<signal name="FLAME_DO_IO4" class="0">
+<contactref element="U1_L" pad="4"/>
+<contactref element="J_FLAME" pad="3"/>
+</signal>
+<signal name="RELAY_FAN_IO5" class="0">
+<contactref element="U1_L" pad="5"/>
+<contactref element="J_RELAY" pad="2"/>
+</signal>
+<signal name="RELAY_ATOM_IO6" class="0">
+<contactref element="U1_L" pad="6"/>
+<contactref element="J_RELAY" pad="3"/>
+</signal>
+<signal name="BUZZER_IO7" class="0">
+<contactref element="U1_L" pad="7"/>
+<contactref element="J_BUZZER" pad="2"/>
+</signal>
+<signal name="NEOPIX_MCU_IO21" class="0">
+<contactref element="U1_R" pad="18"/>
+<contactref element="U1_R_ALT" pad="18"/>
+<contactref element="R1" pad="1"/>
+</signal>
+<signal name="NEOPIX_DIN_FILT" class="0">
+<contactref element="R1" pad="2"/>
+<contactref element="J_LED" pad="2"/>
+</signal>
+<signal name="ESP_R_P2_U0TXD" class="0">
+<contactref element="U1_R" pad="2"/>
+<contactref element="U1_R_ALT" pad="2"/>
+</signal>
+<signal name="ESP_R_P3_U0RXD" class="0">
+<contactref element="U1_R" pad="3"/>
+<contactref element="U1_R_ALT" pad="3"/>
+</signal>
+<signal name="ESP_R_P4_GPIO1" class="0">
+<contactref element="U1_R" pad="4"/>
+<contactref element="U1_R_ALT" pad="4"/>
+</signal>
+<signal name="ESP_R_P5_GPIO2" class="0">
+<contactref element="U1_R" pad="5"/>
+<contactref element="U1_R_ALT" pad="5"/>
+</signal>
+<signal name="ESP_R_P6_GPIO42" class="0">
+<contactref element="U1_R" pad="6"/>
+<contactref element="U1_R_ALT" pad="6"/>
+</signal>
+<signal name="ESP_R_P7_GPIO41" class="0">
+<contactref element="U1_R" pad="7"/>
+<contactref element="U1_R_ALT" pad="7"/>
+</signal>
+<signal name="ESP_R_P8_GPIO40" class="0">
+<contactref element="U1_R" pad="8"/>
+<contactref element="U1_R_ALT" pad="8"/>
+</signal>
+<signal name="ESP_R_P9_GPIO39" class="0">
+<contactref element="U1_R" pad="9"/>
+<contactref element="U1_R_ALT" pad="9"/>
+</signal>
+<signal name="ESP_R_P10_GPIO38" class="0">
+<contactref element="U1_R" pad="10"/>
+<contactref element="U1_R_ALT" pad="10"/>
+</signal>
+<signal name="ESP_R_P11_GPIO37_PSRAM" class="0">
+<contactref element="U1_R" pad="11"/>
+<contactref element="U1_R_ALT" pad="11"/>
+</signal>
+<signal name="ESP_R_P12_GPIO36_PSRAM" class="0">
+<contactref element="U1_R" pad="12"/>
+<contactref element="U1_R_ALT" pad="12"/>
+</signal>
+<signal name="ESP_R_P13_GPIO35_PSRAM" class="0">
+<contactref element="U1_R" pad="13"/>
+<contactref element="U1_R_ALT" pad="13"/>
+</signal>
+<signal name="ESP_R_P14_GPIO0_BOOT" class="0">
+<contactref element="U1_R" pad="14"/>
+<contactref element="U1_R_ALT" pad="14"/>
+</signal>
+<signal name="ESP_R_P15_GPIO45_STRAP" class="0">
+<contactref element="U1_R" pad="15"/>
+<contactref element="U1_R_ALT" pad="15"/>
+</signal>
+<signal name="ESP_R_P16_GPIO48" class="0">
+<contactref element="U1_R" pad="16"/>
+<contactref element="U1_R_ALT" pad="16"/>
+</signal>
+<signal name="ESP_R_P17_GPIO47" class="0">
+<contactref element="U1_R" pad="17"/>
+<contactref element="U1_R_ALT" pad="17"/>
+</signal>
+<signal name="ESP_R_P19_GPIO20_USBD_P" class="0">
+<contactref element="U1_R" pad="19"/>
+<contactref element="U1_R_ALT" pad="19"/>
+</signal>
+<signal name="ESP_R_P20_GPIO19_USBD_N" class="0">
+<contactref element="U1_R" pad="20"/>
+<contactref element="U1_R_ALT" pad="20"/>
+</signal>
+</signals></board></drawing></eagle>
