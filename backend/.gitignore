@@ -2,6 +2,13 @@
 .env
 .env.*
 !.env.example
+secrets/
+nodered/secrets/
+*firebase*adminsdk*.json
+firebase-service-account.json
+mosquitto/passwd
+emqx/auth-built-in-db-bootstrap.csv
+backups/
 
 # Docker persistent volumes & runtime data
 data/
@@ -17,6 +24,11 @@ mysql/
 nodered/node_modules/
 nodered/.config*.json
 nodered/flows_cred.json
+nodered/context/
+nodered/lib/
+nodered/.sessions.json
+nodered/package.json
+nodered/package-lock.json
 *.backup
 
 # Node.js / Python helper scripts (if used)

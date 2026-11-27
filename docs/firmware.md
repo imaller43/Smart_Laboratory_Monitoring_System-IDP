@@ -1,6 +1,6 @@
 # IDP Firmware Architecture: Lab Safety Monitoring System
-**Hardware:** ESP32-S3-N16R8 (Main Node) & ESP32 Super Mini (Gateway)
-**OS:** FreeRTOS (Dual-Core Implementation)
+**Hardware:** ESP32-S3-N16R8 (Main Node) & Seeed Studio XIAO ESP32C3 (Gateway)
+**OS:** FreeRTOS (Dual-Core on Main Node, Single-Core RISC-V on Gateway)
 **Toolchain:** Arduino IDE 2.3.11 (`esp32` by Espressif Systems v3.x, `16MB Flash`, `OPI PSRAM`, `Custom` Partition Scheme + `arduino-littlefs-upload` plugin)
 
 ## 1. FreeRTOS Core Allocation & Multithreading
@@ -86,13 +86,19 @@ The ESP32 flash memory is governed by a custom partition table separating the ap
 
 ## 10. Arduino IDE 2.3.11 Setup, Libraries & MQTT Payload Schema
 
-### Board Configuration (`ESP32-S3-N16R8`)
+### Main Node Board Configuration (`ESP32-S3-N16R8`)
 *   **Board Package:** `esp32` by Espressif Systems (v3.x)
 *   **Board:** `ESP32S3 Dev Module`
 *   **Flash Size:** `16MB (128Mb)` (`QIO 80MHz`)
 *   **PSRAM:** `OPI PSRAM` (8 MB Octal PSRAM)
 *   **Partition Scheme:** `Custom` (uses `firmware/main_node/partitions.csv` with dual 4 MB OTA slots + 2 MB LittleFS)
 *   **Filesystem Uploader:** `arduino-littlefs-upload` VSIX plugin (`Ctrl + Shift + P` -> `Upload LittleFS to Pico/ESP8266/ESP32`)
+
+### Gateway Node Board Configuration (`Seeed Studio XIAO ESP32C3`)
+*   **Board:** `XIAO_ESP32C3` (under `esp32` by Espressif Systems v3.x)
+*   **USB CDC On Boot:** `Enabled` *(required so `Serial.println()` outputs over the XIAO's native USB-C port)*
+*   **Flash Size:** `4MB (32Mb)`
+*   **LoRa SPI Initialization:** `SPI.begin(4, 5, 6, 7);` (`SCK=D2`, `MISO=D3`, `MOSI=D4`, `CS=D5`) followed by `LoRa.setPins(7, 3, 10);` (`CS=D5`, `RST=D1`, `DIO0=D10`) at `433E6`
 
 ### Required Libraries
 | Subsystem | Library | Author / Maintainer | Notes |

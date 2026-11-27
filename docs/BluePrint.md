@@ -18,8 +18,8 @@ Laboratories containing chemicals, specialized equipment, and hazardous material
 ## 4. Hardware Architecture & Budget (Pro-Tier Setup)
 
 **Microcontroller:**
-*   **ESP32 ESP32-S3-N16R8 (38-pin, Type-C) (~RM 25):** The dual-core brain of the system, handling I2C sensors, LittleFS storage, and Wi-Fi communication simultaneously. **For Data Logger
-*   **ESP32 Super Mini (RM 10):** For LoRa Gateway to receive the alert from Main ESP32-S3 and forward it to the cloud when WiFi is not avaiable (Backup Plan)
+*   **ESP32 ESP32-S3-N16R8 (38-pin, Type-C) (~RM 25):** The dual-core brain of the system, handling I2C sensors, LittleFS storage, and Wi-Fi communication simultaneously. **For Data Logger**
+*   **Seeed Studio XIAO ESP32C3 (~RM 25):** Industrial-grade ultra-compact RISC-V microcontroller with metal RF shielding and an external U.FL Wi-Fi antenna. Serves as the 24/7 LoRa-to-Cloud Fallback Gateway to receive emergency alerts from the Main ESP32-S3 and forward them to the cloud when primary lab Wi-Fi is unavailable.
 
 **Input Sensors (Digital I2C & UART):**
 *   **SGP30 Sensor (RM 30):** Factory-calibrated digital sensor for highly accurate TVOC (Toxic Gas) and eCO2 readings without analog noise.
@@ -36,9 +36,9 @@ Laboratories containing chemicals, specialized equipment, and hazardous material
 *   **5V Ultrasonic Atomizer / Humidifier Module (~RM 10):** A creative and safe way to simulate an emergency "Water Sprinkler" system for the presentation diorama. Instead of spraying real water that could damage electronics, it generates a visible, safe cool mist when a fire is detected!
 *   **1.3" I2C OLED Display (SH1106 Driver) (~RM 15):** Mounted on the device to show live environmental status, safety state, and radar presence/distance.
 *   **LM2596S Step-Down Converter** : To convert 12V to 5V for the ESP32 and other components.
-*   **AMS1117-3.3V Step-Down Module** : To convert 5V to 3.3V for the LoRa module.
+*   **2 x AMS1117-3.3V Step-Down Module** : Dedicated isolated 5V-to-3.3V regulators for the LoRa SX1278 modules on both the Main Node and Gateway Node.
 
-*Estimated Hardware Total: ~RM 192 (Well within the RM 350 budget, leaving room for professional casing and power supplies).*
+*Estimated Hardware Total: ~RM 207 (Well within the RM 350 budget, leaving room for professional casing and power supplies).*
 
 ---
 
@@ -157,13 +157,23 @@ The system utilizes the ESP32-S3's flexible GPIO matrix. The mapping below strat
 | **Active Buzzer** | I/O or SIG | **GPIO 7(PIN 7)** | Simple HIGH/LOW digital output. |
 | **ARGB LED (WS2812B)** | DIN (Data In) | **GPIO 21(PIN 21)** | Uses the FastLED or Adafruit NeoPixel library. |
 
-| Component / Function | LoRa Pin | ESP32 Super Mini | Notes & Wiring Instructions |
+---
+
+## 10. Gateway Node (Seeed Studio XIAO ESP32C3) Wiring & Architecture
+
+The fallback Gateway Node uses the **Seeed Studio XIAO ESP32C3** paired with a second **LoRa SX1278 (433 MHz)** module and a dedicated **AMS1117-3.3V** regulator.
+*   **External Wi-Fi Antenna:** The included 2.4 GHz U.FL FPC antenna **must be snapped onto the U.FL socket** (between the `R` and `B` buttons) before powering on, as the XIAO ESP32C3 has no onboard ceramic antenna.
+*   **Strapping-Safe Custom SPI (`SPI.begin(4, 5, 6, 7)`):** The pin mapping below intentionally avoids all ESP32-C3 boot strapping pins (`D0 / GPIO 2`, `D8 / GPIO 8`, `D9 / GPIO 9`) so the Gateway always boots reliably after power outages.
+*   **Isolated RF Power:** Powered via a 5V USB-C wall adapter; the XIAO's **`5V` pin** feeds the dedicated **AMS1117-3.3V** regulator (decoupled with 10µF + 0.1µF input and 22µF Tantalum + 0.1µF output capacitors) to supply clean 3.3V to the LoRa SX1278 without heating the XIAO's internal regulator.
+
+| Component / Function | Component Pin | XIAO ESP32C3 Pin (GPIO) | Notes & Wiring Instructions |
 | :--- | :--- | :--- | :--- |
-| **LoRa SX1278** | SCK (Clock) | **GPIO 4** | Standard SPI clock. |
-| (SPI Bus) | MISO (Data In) | **GPIO 5** | Standard SPI data in. |
-| | MOSI (Data Out) | **GPIO 6** | Standard SPI data out. |
-| | CS / NSS (Chip Select)| **GPIO 7** | Tells the LoRa module to listen. |
-| | RST (Reset) | **GPIO 3** | Resets the LoRa module on boot. |
-| | DIO0 (Interrupt) | **GPIO 10** | Triggers the Super Mini when an alert arrives. |
-| **Power** | VCC | **3.3V Pin** | Safe to use Super Mini 3.3V (Gateway is RX only). |
-| | GND | **GND Pin** | Shared common ground. |
+| **LoRa SX1278** | SCK (Clock) | **`D2` (GPIO 4)** | Custom SPI clock (strapping-safe). |
+| (SPI Bus) | MISO (Data In) | **`D3` (GPIO 5)** | Custom SPI data in (strapping-safe). |
+| | MOSI (Data Out) | **`D4` (GPIO 6)** | Custom SPI data out (strapping-safe). |
+| | CS / NSS (Chip Select) | **`D5` (GPIO 7)** | Selects the LoRa module on the SPI bus. |
+| | RST (Reset) | **`D1` (GPIO 3)** | Resets the LoRa module on boot. |
+| | DIO0 (Interrupt) | **`D10` (GPIO 10)** | Triggers hardware interrupt when an alert packet arrives. |
+| **Isolated RF Power** | AMS1117 `VIN` | **`5V` Pin** | Outputs ~4.8V from USB-C VBUS to feed AMS1117-3.3V. |
+| | LoRa `VCC` | *AMS1117 `VOUT` (3.3V)* | Powered strictly from external AMS1117 (leave XIAO `3V3` pin unloaded). |
+| **Common Ground** | AMS1117 & LoRa `GND` | **`GND` Pin** | Tie XIAO `GND`, AMS1117 `GND`, capacitors, and LoRa `GND` together. |

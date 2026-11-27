@@ -48,24 +48,29 @@ The primary sensor and actuator hub for the laboratory.
 * **WS2812B LED (ARGB):** Data input to GPIO 21. Powered directly from the 5V rail.
 
 ## 3. Gateway Node (Fallback Receiver)
-Acts as a failsafe to bridge LoRa packets to the EMQX MQTT Broker if the primary lab Wi-Fi goes down.
-* **Controller:** ESP32 Super Mini.
+Acts as an independent 24/7 failsafe bridge to receive emergency LoRa packets from the Main Node and publish them to the cloud EMQX MQTT Broker if the primary laboratory Wi-Fi goes down.
 
-* **Main Power:** 5V 1A or 2A USB Wall Adapter.
+* **Controller:** **Seeed Studio XIAO ESP32C3** (32-bit RISC-V, metal RF-shielded industrial module).
+  * Chosen over generic Super Mini clones for superior 24/7 thermal stability, genuine USB-C CC termination resistors (compatible with both USB-A-to-C and USB-C-to-C power adapters), and an external antenna interface.
 
-  * **Critical:** Must use a standard USB-A to USB-C cable (avoid Type-C to Type-C smart cables to prevent PD negotiation failures where the board receives no power).
+* **External Wi-Fi Antenna (Critical Requirement):**
+  * The XIAO ESP32C3 has **no onboard ceramic antenna**; its RF path routes exclusively to the onboard **U.FL (IPEX) socket** located between the `R` and `B` buttons.
+  * The included **2.4 GHz external FPC antenna must be snapped on** prior to powering the board to ensure reliable long-range Wi-Fi reception and prevent RF transceiver damage.
 
-* **Isolated RF Power:** A second, dedicated AMS1117-3.3V regulator.
-  * Takes 5V input directly from the Super Mini's 5V pin.
-  * Powers the LoRa SX1278 module exclusively to prevent the 120mA RF bursts from overheating the Super Mini's internal 3.3V regulator.
+* **Main Power & Isolated RF Rail:**
+  * **Primary Supply:** 5V 1A/2A USB-C Wall Adapter plugged into the XIAO ESP32C3 USB-C port.
+  * **Isolated RF Power (Dedicated AMS1117-3.3V):** The XIAO's **`5V` pin** outputs USB VBUS (~4.8V via its internal Schottky diode) to feed a second, dedicated **AMS1117-3.3V linear regulator**.
+  * This isolated 3.3V rail powers the **LoRa SX1278 (`VCC`)** exclusively, keeping the XIAO's onboard 3.3V regulator cool during 24/7 Wi-Fi operation and handling 120mA RF spikes safely if two-way LoRa ACK packets are enabled.
+  * **Common Ground:** XIAO **`GND`**, AMS1117 **`GND`**, capacitor grounds, and LoRa **`GND`** must all tie together.
 
-* **LoRa SX1278 Custom SPI Mapping:**
-  * **SCK:** 4
-  * **MISO:** 5
-  * **MOSI:** 6
-  * **CS:** 7
-  * **RST:** 3
-  * **DIO0:** 10
+* **LoRa SX1278 Strapping-Safe Custom SPI Mapping (`SPI.begin(4, 5, 6, 7)`):**
+  * Intentionally skips ESP32-C3 boot strapping pins (`D0 / GPIO 2`, `D8 / GPIO 8`, and `D9 / GPIO 9`) so the Gateway is guaranteed to boot cleanly after any power interruption, even if LoRa SPI lines fluctuate at startup:
+  * **SCK (Clock):** **`D2`** (`GPIO 4`)
+  * **MISO (Data In):** **`D3`** (`GPIO 5`)
+  * **MOSI (Data Out):** **`D4`** (`GPIO 6`)
+  * **CS / NSS (Chip Select):** **`D5`** (`GPIO 7`)
+  * **RST (Reset):** **`D1`** (`GPIO 3`)
+  * **DIO0 (Interrupt):** **`D10`** (`GPIO 10`)
 
 ## 4. Passive Components & Hardware Protections
 Crucial discrete components required to maintain signal integrity and prevent brownouts.

@@ -1,0 +1,834 @@
+[
+  {
+    "id": "tab_telemetry",
+    "type": "tab",
+    "label": "1. Telemetry, Storage & Alerts",
+    "disabled": false,
+    "info": "Receives ESP32 Main Node & LoRa Gateway telemetry from Mosquitto (+/telemetry), pushes 1Hz live updates to WebSockets, writes throttled points (with immediate state-change override) to InfluxDB v2, and triggers edge-triggered Telegram + FCM browser push alerts."
+  },
+  {
+    "id": "tab_api",
+    "type": "tab",
+    "label": "2. Dashboard REST API",
+    "disabled": false,
+    "info": "Exposes REST endpoints for the Netlify frontend: /api/health, /api/latest, /api/history, /api/alerts, /api/fcm/register, /api/fcm/unregister, and /api/ota/trigger."
+  },
+  {
+    "id": "tab_simulator",
+    "type": "tab",
+    "label": "3. Test & Simulation",
+    "disabled": false,
+    "info": "Manual inject buttons for simulating States 0-4 over Mosquitto without physical ESP32 hardware."
+  },
+  {
+    "id": "cfg_mqtt_broker",
+    "type": "mqtt-broker",
+    "name": "Mosquitto Internal Broker",
+    "broker": "mosquitto",
+    "port": "1883",
+    "clientid": "nodered_backend_client",
+    "autoConnect": true,
+    "usetls": false,
+    "protocolVersion": "4",
+    "keepalive": "30",
+    "cleansession": true,
+    "autoUnsubscribe": true,
+    "birthTopic": "",
+    "birthQos": "0",
+    "birthRetain": "false",
+    "birthPayload": "",
+    "birthMsg": {},
+    "closeTopic": "",
+    "closeQos": "0",
+    "closeRetain": "false",
+    "closePayload": "",
+    "closeMsg": {},
+    "willTopic": "",
+    "willQos": "0",
+    "willRetain": "false",
+    "willPayload": "",
+    "willMsg": {},
+    "userProps": "",
+    "sessionExpiry": ""
+  },
+  {
+    "id": "cfg_influx_v2",
+    "type": "influxdb",
+    "hostname": "influxdb",
+    "port": "8086",
+    "protocol": "http",
+    "database": "lab_safety",
+    "name": "InfluxDB v2 (idp-lab)",
+    "usetls": false,
+    "tls": "",
+    "influxdbVersion": "2.0",
+    "url": "http://influxdb:8086",
+    "timeout": "10",
+    "rejectUnauthorized": false
+  },
+  {
+    "id": "cfg_ws_telemetry",
+    "type": "websocket-listener",
+    "path": "/ws/telemetry",
+    "wholemsg": "false"
+  },
+  {
+    "id": "mqtt_in_telemetry",
+    "type": "mqtt in",
+    "z": "tab_telemetry",
+    "name": "Subscribe +/telemetry",
+    "topic": "+/telemetry",
+    "qos": "1",
+    "datatype": "auto-detect",
+    "broker": "cfg_mqtt_broker",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 140,
+    "y": 180,
+    "wires": [
+      [
+        "fn_normalize_route"
+      ]
+    ]
+  },
+  {
+    "id": "status_mqtt_watch",
+    "type": "status",
+    "z": "tab_telemetry",
+    "name": "Track MQTT Status",
+    "scope": [
+      "mqtt_in_telemetry"
+    ],
+    "x": 140,
+    "y": 80,
+    "wires": [
+      [
+        "fn_track_mqtt_status"
+      ]
+    ]
+  },
+  {
+    "id": "fn_track_mqtt_status",
+    "type": "function",
+    "z": "tab_telemetry",
+    "name": "Save MQTT Connection State",
+    "func": "const text = (msg.status && msg.status.text) ? String(msg.status.text).toLowerCase() : '';\nglobal.set('mqttConnected', text.includes('connected') && !text.includes('disconnected'));\nreturn null;",
+    "outputs": 0,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 380,
+    "y": 80,
+    "wires": []
+  },
+  {
+    "id": "fn_normalize_route",
+    "type": "function",
+    "z": "tab_telemetry",
+    "name": "Normalize, Cache & Split-Route",
+    "func": "const STATE_LABELS = [\n    'NORMAL',\n    'WARNING (MINOR CHEMICAL LEAK)',\n    'CRITICAL (SEVERE TOXIC LEAK)',\n    'EMERGENCY (CONFIRMED FIRE)',\n    'SENSOR GLITCH / FALSE ALARM'\n];\n\nlet raw = msg.payload;\nif (typeof raw === 'string') {\n    try {\n        raw = JSON.parse(raw);\n    } catch (e) {\n        node.warn('Dropped malformed JSON telemetry on topic ' + msg.topic);\n        return [null, null, null];\n    }\n}\nif (!raw || typeof raw !== 'object') {\n    return [null, null, null];\n}\n\nconst topicNode = (msg.topic || 'lab_main_s3/telemetry').split('/')[0];\nconst nodeId = String(raw.node || topicNode || 'lab_main_s3').replace(/[^a-zA-Z0-9_-]/g, '');\nconst state = Number.isFinite(Number(raw.state)) ? Math.max(0, Math.min(4, parseInt(raw.state, 10))) : 0;\nconst nowMs = Date.now();\nconst nowIso = new Date(nowMs).toISOString();\n\nconst telemetry = {\n    node: nodeId,\n    state: state,\n    state_label: STATE_LABELS[state] || 'UNKNOWN',\n    temp: Number(raw.temp ?? 0),\n    humidity: Number(raw.humidity ?? 0),\n    pressure: Number(raw.pressure ?? 0),\n    tvoc: parseInt(raw.tvoc ?? 0, 10) || 0,\n    eco2: parseInt(raw.eco2 ?? 0, 10) || 0,\n    flame: (raw.flame === true || Number(raw.flame) === 1) ? 1 : 0,\n    presence: Boolean(raw.presence),\n    distance_cm: parseInt(raw.distance_cm ?? 0, 10) || 0,\n    uptime_s: parseInt(raw.uptime_s ?? 0, 10) || 0,\n    received_at: nowIso\n};\n\n// Track previous state & DB throttle per node\nconst lastStateByNode = global.get('lastStateByNode') || {};\nconst lastDbWriteByNode = global.get('lastDbWriteByNode') || {};\nconst latestByNode = global.get('latestByNode') || {};\n\nconst prevState = (nodeId in lastStateByNode) ? lastStateByNode[nodeId] : null;\nconst stateChanged = (prevState !== null && prevState !== state);\nconst firstAlertOnBoot = (prevState === null && state > 0);\n\nlastStateByNode[nodeId] = state;\nlatestByNode[nodeId] = telemetry;\nglobal.set('lastStateByNode', lastStateByNode);\nglobal.set('latestByNode', latestByNode);\nglobal.set('latestTelemetry', telemetry);\nglobal.set('lastTelemetryAt', nowIso);\n\n// Output 1: Always push live 1Hz telemetry to WebSocket clients\nconst wsMsg = {\n    payload: JSON.stringify(telemetry)\n};\n\n// Output 2: Smart InfluxDB v2 rate gate (max 1 write / 10s, but NEVER skip state transitions)\nlet dbMsg = null;\nconst lastWrite = lastDbWriteByNode[nodeId] || 0;\nconst DB_MIN_INTERVAL_MS = 10000;\nif (stateChanged || firstAlertOnBoot || (nowMs - lastWrite >= DB_MIN_INTERVAL_MS)) {\n    lastDbWriteByNode[nodeId] = nowMs;\n    global.set('lastDbWriteByNode', lastDbWriteByNode);\n    dbMsg = {\n        payload: [\n            {\n                state: telemetry.state,\n                temp: telemetry.temp,\n                humidity: telemetry.humidity,\n                pressure: telemetry.pressure,\n                tvoc: telemetry.tvoc,\n                eco2: telemetry.eco2,\n                flame: telemetry.flame,\n                presence: telemetry.presence,\n                distance_cm: telemetry.distance_cm,\n                uptime_s: telemetry.uptime_s\n            },\n            {\n                node: telemetry.node\n            }\n        ]\n    };\n}\n\n// Output 3: Edge-triggered Alerts (Telegram + FCM) — fire ONLY on state transition or non-zero boot\nlet alertMsg = null;\nif (firstAlertOnBoot || (stateChanged && (state > 0 || prevState > 0))) {\n    alertMsg = {\n        payload: telemetry,\n        prevState: prevState,\n        isRecovery: (state === 0 && prevState > 0)\n    };\n}\n\nreturn [wsMsg, dbMsg, alertMsg];",
+    "outputs": 3,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 410,
+    "y": 180,
+    "wires": [
+      [
+        "ws_out_telemetry"
+      ],
+      [
+        "influx_out_telemetry"
+      ],
+      [
+        "fn_format_telegram",
+        "fn_send_fcm"
+      ]
+    ]
+  },
+  {
+    "id": "ws_out_telemetry",
+    "type": "websocket out",
+    "z": "tab_telemetry",
+    "name": "Broadcast /ws/telemetry",
+    "server": "cfg_ws_telemetry",
+    "client": "",
+    "x": 740,
+    "y": 100,
+    "wires": []
+  },
+  {
+    "id": "influx_out_telemetry",
+    "type": "influxdb out",
+    "z": "tab_telemetry",
+    "influxdb": "cfg_influx_v2",
+    "name": "Write InfluxDB (lab_telemetry)",
+    "measurement": "lab_telemetry",
+    "precision": "",
+    "retentionPolicy": "",
+    "database": "lab_safety",
+    "precisionV18FluxV20": "ms",
+    "retentionPolicyV18Flux": "",
+    "org": "${INFLUXDB_ORG}",
+    "bucket": "${INFLUXDB_BUCKET}",
+    "x": 760,
+    "y": 180,
+    "wires": []
+  },
+  {
+    "id": "fn_format_telegram",
+    "type": "function",
+    "z": "tab_telemetry",
+    "name": "Format Telegram Alert (HTTP API)",
+    "func": "const token = (env.get('TELEGRAM_BOT_TOKEN') || '').trim();\nconst chatId = (env.get('TELEGRAM_CHAT_ID') || '').trim();\n\nif (!token || !chatId) {\n    node.status({ fill: 'grey', shape: 'ring', text: 'Telegram not configured' });\n    return null;\n}\n\nconst d = msg.payload;\nconst icons = { 0: '✅', 1: '⚠️', 2: '☣️', 3: '🔥', 4: '🛠️' };\nconst header = msg.isRecovery\n    ? '✅ <b>LAB SAFETY RESOLVED — BACK TO NORMAL</b>'\n    : `${icons[d.state] || '🚨'} <b>LAB SAFETY ALERT: ${d.state_label}</b>`;\n\nconst localTime = new Date(d.received_at).toLocaleString('en-MY', {\n    timeZone: 'Asia/Kuala_Lumpur',\n    hour12: false\n});\n\nconst lines = [\n    header,\n    ``,\n    `<b>Node:</b> <code>${d.node}</code>`,\n    `<b>State:</b> ${d.state} (${d.state_label})`,\n    `<b>Temperature:</b> ${d.temp.toFixed(1)} °C`,\n    `<b>Humidity:</b> ${d.humidity.toFixed(1)} %`,\n    `<b>TVOC / eCO2:</b> ${d.tvoc} ppb / ${d.eco2} ppm`,\n    `<b>Flame Sensor:</b> ${d.flame ? 'DETECTED' : 'Clear'}`,\n    `<b>Human Presence:</b> ${d.presence ? 'Detected (' + d.distance_cm + ' cm)' : 'None'}`,\n    `<b>Time (MYT):</b> ${localTime}`\n];\n\nmsg.method = 'POST';\nmsg.url = `https://api.telegram.org/bot${token}/sendMessage`;\nmsg.headers = { 'Content-Type': 'application/json' };\nmsg.payload = {\n    chat_id: chatId,\n    text: lines.join('\\n'),\n    parse_mode: 'HTML'\n};\n\nnode.status({ fill: d.state >= 2 ? 'red' : (d.state === 0 ? 'green' : 'yellow'), shape: 'dot', text: `Sent state ${d.state}` });\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 760,
+    "y": 260,
+    "wires": [
+      [
+        "http_req_telegram"
+      ]
+    ]
+  },
+  {
+    "id": "http_req_telegram",
+    "type": "http request",
+    "z": "tab_telemetry",
+    "name": "POST Telegram Bot API",
+    "method": "use",
+    "ret": "obj",
+    "paytoqs": "ignore",
+    "url": "",
+    "tls": "",
+    "persist": false,
+    "proxy": "",
+    "insecureHTTPParser": false,
+    "authType": "",
+    "senderr": false,
+    "headers": [],
+    "x": 1040,
+    "y": 260,
+    "wires": [
+      [
+        "dbg_alerts"
+      ]
+    ]
+  },
+  {
+    "id": "fn_send_fcm",
+    "type": "function",
+    "z": "tab_telemetry",
+    "name": "Send FCM Browser Push",
+    "func": "const fcmHelper = global.get('fcmHelper');\nif (!fcmHelper || !fcmHelper.isReady()) {\n    node.status({ fill: 'grey', shape: 'ring', text: 'FCM not configured' });\n    return null;\n}\n\nconst d = msg.payload;\nconst title = msg.isRecovery\n    ? 'Lab Safety: All Clear (Normal)'\n    : `Lab Safety Alert: ${d.state_label}`;\n\nconst body = msg.isRecovery\n    ? `${d.node} returned to normal. Temp ${d.temp.toFixed(1)}°C, TVOC ${d.tvoc} ppb.`\n    : `${d.node} — Temp: ${d.temp.toFixed(1)}°C | TVOC: ${d.tvoc} ppb | Flame: ${d.flame ? 'YES' : 'No'} | Presence: ${d.presence ? 'Yes' : 'No'}`;\n\nfcmHelper.sendAlert({\n    title,\n    body,\n    data: {\n        node: d.node,\n        state: d.state,\n        state_label: d.state_label,\n        temp: d.temp,\n        tvoc: d.tvoc,\n        flame: d.flame,\n        presence: d.presence,\n        received_at: d.received_at\n    }\n}).then((res) => {\n    node.status({ fill: 'green', shape: 'dot', text: `FCM sent (${res.topic})` });\n    node.send({ topic: 'fcm/result', payload: res });\n    node.done();\n}).catch((err) => {\n    node.status({ fill: 'red', shape: 'ring', text: 'FCM error' });\n    node.error('FCM push failed: ' + err.message, msg);\n    node.done();\n});\n\nreturn null;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 740,
+    "y": 340,
+    "wires": [
+      [
+        "dbg_alerts"
+      ]
+    ]
+  },
+  {
+    "id": "dbg_alerts",
+    "type": "debug",
+    "z": "tab_telemetry",
+    "name": "Alert Dispatch Log",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1270,
+    "y": 300,
+    "wires": []
+  },
+  {
+    "id": "http_in_health",
+    "type": "http in",
+    "z": "tab_api",
+    "name": "GET /api/health",
+    "url": "/api/health",
+    "method": "get",
+    "upload": false,
+    "swaggerDoc": "",
+    "x": 140,
+    "y": 80,
+    "wires": [
+      [
+        "fn_api_health"
+      ]
+    ]
+  },
+  {
+    "id": "fn_api_health",
+    "type": "function",
+    "z": "tab_api",
+    "name": "Build Health Response",
+    "func": "const fcmHelper = global.get('fcmHelper');\nconst latestByNode = global.get('latestByNode') || {};\n\nmsg.statusCode = 200;\nmsg.payload = {\n    status: 'ok',\n    service: 'lab-safety-backend',\n    timestamp: new Date().toISOString(),\n    mqttConnected: Boolean(global.get('mqttConnected')),\n    fcm: fcmHelper ? fcmHelper.getStatus() : { ready: false },\n    telegramConfigured: Boolean((env.get('TELEGRAM_BOT_TOKEN') || '').trim() && (env.get('TELEGRAM_CHAT_ID') || '').trim()),\n    lastTelemetryAt: global.get('lastTelemetryAt') || null,\n    nodes: Object.keys(latestByNode)\n};\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 400,
+    "y": 80,
+    "wires": [
+      [
+        "http_res_common"
+      ]
+    ]
+  },
+  {
+    "id": "http_in_latest",
+    "type": "http in",
+    "z": "tab_api",
+    "name": "GET /api/latest",
+    "url": "/api/latest",
+    "method": "get",
+    "upload": false,
+    "swaggerDoc": "",
+    "x": 140,
+    "y": 150,
+    "wires": [
+      [
+        "fn_api_latest"
+      ]
+    ]
+  },
+  {
+    "id": "fn_api_latest",
+    "type": "function",
+    "z": "tab_api",
+    "name": "Fetch Cached Latest Snapshot",
+    "func": "const requestedNode = (msg.req && msg.req.query && msg.req.query.node) ? String(msg.req.query.node) : '';\nconst latestByNode = global.get('latestByNode') || {};\nconst latest = requestedNode ? latestByNode[requestedNode] : global.get('latestTelemetry');\n\nmsg.statusCode = 200;\nif (!latest) {\n    msg.payload = {\n        ok: true,\n        hasData: false,\n        data: null,\n        message: 'Waiting for first telemetry packet from ESP32.'\n    };\n} else {\n    msg.payload = {\n        ok: true,\n        hasData: true,\n        data: latest\n    };\n}\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 420,
+    "y": 150,
+    "wires": [
+      [
+        "http_res_common"
+      ]
+    ]
+  },
+  {
+    "id": "http_in_history",
+    "type": "http in",
+    "z": "tab_api",
+    "name": "GET /api/history",
+    "url": "/api/history",
+    "method": "get",
+    "upload": false,
+    "swaggerDoc": "",
+    "x": 140,
+    "y": 230,
+    "wires": [
+      [
+        "fn_build_history_flux"
+      ]
+    ]
+  },
+  {
+    "id": "fn_build_history_flux",
+    "type": "function",
+    "z": "tab_api",
+    "name": "Build Flux History Query",
+    "func": "const RANGE_MAP = {\n    '15m': { start: '-15m', window: '10s' },\n    '1h':  { start: '-1h',  window: '30s' },\n    '6h':  { start: '-6h',  window: '2m'  },\n    '24h': { start: '-24h', window: '5m'  },\n    '7d':  { start: '-7d',  window: '30m' },\n    '30d': { start: '-30d', window: '2h'  }\n};\n\nconst reqRange = (msg.req && msg.req.query && msg.req.query.range) ? String(msg.req.query.range) : '1h';\nconst cfg = RANGE_MAP[reqRange] || RANGE_MAP['1h'];\nconst appliedRange = RANGE_MAP[reqRange] ? reqRange : '1h';\n\nconst rawNode = (msg.req && msg.req.query && msg.req.query.node) ? String(msg.req.query.node) : '';\nconst safeNode = rawNode.replace(/[^a-zA-Z0-9_-]/g, '');\nconst bucket = env.get('INFLUXDB_BUCKET') || 'lab_safety';\n\nconst nodeFilter = safeNode ? `|> filter(fn: (r) => r.node == \"${safeNode}\")` : '';\n\nmsg._historyMeta = { range: appliedRange, window: cfg.window, node: safeNode || 'all' };\nmsg.query = `\nfrom(bucket: \"${bucket}\")\n  |> range(start: ${cfg.start})\n  |> filter(fn: (r) => r._measurement == \"lab_telemetry\")\n  ${nodeFilter}\n  |> filter(fn: (r) => r._field == \"temp\" or r._field == \"humidity\" or r._field == \"pressure\" or r._field == \"tvoc\" or r._field == \"eco2\" or r._field == \"state\" or r._field == \"flame\" or r._field == \"distance_cm\")\n  |> aggregateWindow(every: ${cfg.window}, fn: mean, createEmpty: false)\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> sort(columns: [\"_time\"])\n`;\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 380,
+    "y": 230,
+    "wires": [
+      [
+        "influx_in_history"
+      ]
+    ]
+  },
+  {
+    "id": "influx_in_history",
+    "type": "influxdb in",
+    "z": "tab_api",
+    "influxdb": "cfg_influx_v2",
+    "name": "Query History (Flux)",
+    "query": "",
+    "rawOutput": false,
+    "precision": "",
+    "retentionPolicy": "",
+    "org": "${INFLUXDB_ORG}",
+    "x": 630,
+    "y": 230,
+    "wires": [
+      [
+        "fn_format_history"
+      ]
+    ]
+  },
+  {
+    "id": "fn_format_history",
+    "type": "function",
+    "z": "tab_api",
+    "name": "Format History JSON",
+    "func": "const rows = Array.isArray(msg.payload) ? msg.payload : [];\nconst cleaned = rows.map((r) => ({\n    time: r._time,\n    node: r.node,\n    temp: r.temp !== undefined ? Number(Number(r.temp).toFixed(2)) : null,\n    humidity: r.humidity !== undefined ? Number(Number(r.humidity).toFixed(2)) : null,\n    pressure: r.pressure !== undefined ? Number(Number(r.pressure).toFixed(2)) : null,\n    tvoc: r.tvoc !== undefined ? Math.round(Number(r.tvoc)) : null,\n    eco2: r.eco2 !== undefined ? Math.round(Number(r.eco2)) : null,\n    state: r.state !== undefined ? Math.round(Number(r.state)) : null,\n    flame: r.flame !== undefined ? Math.round(Number(r.flame)) : null,\n    distance_cm: r.distance_cm !== undefined ? Math.round(Number(r.distance_cm)) : null\n}));\n\nconst meta = msg._historyMeta || {};\nmsg.statusCode = 200;\nmsg.payload = {\n    ok: true,\n    range: meta.range || '1h',\n    window: meta.window || '30s',\n    node: meta.node || 'all',\n    count: cleaned.length,\n    data: cleaned\n};\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 860,
+    "y": 230,
+    "wires": [
+      [
+        "http_res_common"
+      ]
+    ]
+  },
+  {
+    "id": "http_in_alerts",
+    "type": "http in",
+    "z": "tab_api",
+    "name": "GET /api/alerts",
+    "url": "/api/alerts",
+    "method": "get",
+    "upload": false,
+    "swaggerDoc": "",
+    "x": 140,
+    "y": 310,
+    "wires": [
+      [
+        "fn_build_alerts_flux"
+      ]
+    ]
+  },
+  {
+    "id": "fn_build_alerts_flux",
+    "type": "function",
+    "z": "tab_api",
+    "name": "Build Flux Alerts Query",
+    "func": "const VALID_RANGES = ['1h', '6h', '24h', '7d', '30d'];\nconst reqRange = (msg.req && msg.req.query && msg.req.query.range) ? String(msg.req.query.range) : '7d';\nconst range = VALID_RANGES.includes(reqRange) ? reqRange : '7d';\n\nconst reqLimit = parseInt((msg.req && msg.req.query && msg.req.query.limit) || '50', 10);\nconst limit = Number.isFinite(reqLimit) ? Math.max(1, Math.min(200, reqLimit)) : 50;\nconst bucket = env.get('INFLUXDB_BUCKET') || 'lab_safety';\n\nmsg._alertsMeta = { range, limit };\nmsg.query = `\nfrom(bucket: \"${bucket}\")\n  |> range(start: -${range})\n  |> filter(fn: (r) => r._measurement == \"lab_telemetry\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> filter(fn: (r) => exists r.state and r.state > 0)\n  |> sort(columns: [\"_time\"], desc: true)\n  |> limit(n: ${limit})\n`;\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 380,
+    "y": 310,
+    "wires": [
+      [
+        "influx_in_alerts"
+      ]
+    ]
+  },
+  {
+    "id": "influx_in_alerts",
+    "type": "influxdb in",
+    "z": "tab_api",
+    "influxdb": "cfg_influx_v2",
+    "name": "Query Alerts (Flux)",
+    "query": "",
+    "rawOutput": false,
+    "precision": "",
+    "retentionPolicy": "",
+    "org": "${INFLUXDB_ORG}",
+    "x": 630,
+    "y": 310,
+    "wires": [
+      [
+        "fn_format_alerts"
+      ]
+    ]
+  },
+  {
+    "id": "fn_format_alerts",
+    "type": "function",
+    "z": "tab_api",
+    "name": "Format Alerts JSON",
+    "func": "const STATE_LABELS = [\n    'NORMAL',\n    'WARNING (MINOR CHEMICAL LEAK)',\n    'CRITICAL (SEVERE TOXIC LEAK)',\n    'EMERGENCY (CONFIRMED FIRE)',\n    'SENSOR GLITCH / FALSE ALARM'\n];\n\nconst rows = Array.isArray(msg.payload) ? msg.payload : [];\nconst alerts = rows.map((r) => ({\n    time: r._time,\n    node: r.node,\n    state: Number(r.state),\n    state_label: STATE_LABELS[Number(r.state)] || 'UNKNOWN',\n    temp: r.temp !== undefined ? Number(Number(r.temp).toFixed(1)) : null,\n    humidity: r.humidity !== undefined ? Number(Number(r.humidity).toFixed(1)) : null,\n    tvoc: r.tvoc !== undefined ? Math.round(Number(r.tvoc)) : null,\n    eco2: r.eco2 !== undefined ? Math.round(Number(r.eco2)) : null,\n    flame: r.flame !== undefined ? Number(r.flame) : 0,\n    presence: Boolean(r.presence),\n    distance_cm: r.distance_cm !== undefined ? Math.round(Number(r.distance_cm)) : null\n}));\n\nconst meta = msg._alertsMeta || {};\nmsg.statusCode = 200;\nmsg.payload = {\n    ok: true,\n    range: meta.range || '7d',\n    count: alerts.length,\n    alerts\n};\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 860,
+    "y": 310,
+    "wires": [
+      [
+        "http_res_common"
+      ]
+    ]
+  },
+  {
+    "id": "http_in_fcm_reg",
+    "type": "http in",
+    "z": "tab_api",
+    "name": "POST /api/fcm/register",
+    "url": "/api/fcm/register",
+    "method": "post",
+    "upload": false,
+    "swaggerDoc": "",
+    "x": 160,
+    "y": 400,
+    "wires": [
+      [
+        "fn_fcm_register"
+      ]
+    ]
+  },
+  {
+    "id": "fn_fcm_register",
+    "type": "function",
+    "z": "tab_api",
+    "name": "Subscribe FCM Browser Token",
+    "func": "const token = (msg.payload && typeof msg.payload.token === 'string') ? msg.payload.token.trim() : '';\nif (!token) {\n    msg.statusCode = 400;\n    msg.payload = { ok: false, error: 'Missing required JSON field: token' };\n    return msg;\n}\n\nconst fcmHelper = global.get('fcmHelper');\nif (!fcmHelper || !fcmHelper.isReady()) {\n    msg.statusCode = 503;\n    msg.payload = { ok: false, error: 'FCM is not configured on backend yet (missing service account JSON).' };\n    return msg;\n}\n\nfcmHelper.subscribeToken(token).then((res) => {\n    msg.statusCode = res.ok ? 200 : 500;\n    msg.payload = res;\n    node.send(msg);\n    node.done();\n}).catch((err) => {\n    msg.statusCode = 500;\n    msg.payload = { ok: false, error: err.message };\n    node.send(msg);\n    node.done();\n});\n\nreturn null;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 430,
+    "y": 400,
+    "wires": [
+      [
+        "http_res_common"
+      ]
+    ]
+  },
+  {
+    "id": "http_in_fcm_unreg",
+    "type": "http in",
+    "z": "tab_api",
+    "name": "POST /api/fcm/unregister",
+    "url": "/api/fcm/unregister",
+    "method": "post",
+    "upload": false,
+    "swaggerDoc": "",
+    "x": 170,
+    "y": 470,
+    "wires": [
+      [
+        "fn_fcm_unregister"
+      ]
+    ]
+  },
+  {
+    "id": "fn_fcm_unregister",
+    "type": "function",
+    "z": "tab_api",
+    "name": "Unsubscribe FCM Browser Token",
+    "func": "const token = (msg.payload && typeof msg.payload.token === 'string') ? msg.payload.token.trim() : '';\nif (!token) {\n    msg.statusCode = 400;\n    msg.payload = { ok: false, error: 'Missing required JSON field: token' };\n    return msg;\n}\n\nconst fcmHelper = global.get('fcmHelper');\nif (!fcmHelper || !fcmHelper.isReady()) {\n    msg.statusCode = 503;\n    msg.payload = { ok: false, error: 'FCM is not configured on backend yet.' };\n    return msg;\n}\n\nfcmHelper.unsubscribeToken(token).then((res) => {\n    msg.statusCode = res.ok ? 200 : 500;\n    msg.payload = res;\n    node.send(msg);\n    node.done();\n}).catch((err) => {\n    msg.statusCode = 500;\n    msg.payload = { ok: false, error: err.message };\n    node.send(msg);\n    node.done();\n});\n\nreturn null;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 440,
+    "y": 470,
+    "wires": [
+      [
+        "http_res_common"
+      ]
+    ]
+  },
+  {
+    "id": "http_in_ota",
+    "type": "http in",
+    "z": "tab_api",
+    "name": "POST /api/ota/trigger",
+    "url": "/api/ota/trigger",
+    "method": "post",
+    "upload": false,
+    "swaggerDoc": "",
+    "x": 160,
+    "y": 550,
+    "wires": [
+      [
+        "fn_ota_trigger"
+      ]
+    ]
+  },
+  {
+    "id": "fn_ota_trigger",
+    "type": "function",
+    "z": "tab_api",
+    "name": "Validate API Key & Safety Interlock",
+    "func": "const expectedKey = (env.get('API_ADMIN_KEY') || '').trim();\nif (!expectedKey) {\n    msg.statusCode = 503;\n    msg.payload = { ok: false, error: 'API_ADMIN_KEY is not configured on backend.' };\n    return [msg, null];\n}\n\nconst providedKey = (msg.req && msg.req.headers && msg.req.headers['x-api-key']) ? String(msg.req.headers['x-api-key']).trim() : '';\nif (providedKey !== expectedKey) {\n    msg.statusCode = 401;\n    msg.payload = { ok: false, error: 'Unauthorized: invalid X-API-Key header.' };\n    return [msg, null];\n}\n\nconst latest = global.get('latestTelemetry');\nif (latest && Number(latest.state) !== 0) {\n    msg.statusCode = 403;\n    msg.payload = { ok: false, error: 'OTA blocked by safety interlock: lab is not in STATE_NORMAL.', currentState: latest.state };\n    return [msg, null];\n}\n\nconst mqttMsg = {\n    topic: 'esp32/ota_trigger',\n    payload: 'trigger'\n};\n\nmsg.statusCode = 200;\nmsg.payload = { ok: true, topic: 'esp32/ota_trigger', message: 'OTA trigger published to ESP32.' };\nreturn [msg, mqttMsg];",
+    "outputs": 2,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 440,
+    "y": 550,
+    "wires": [
+      [
+        "http_res_common"
+      ],
+      [
+        "mqtt_out_ota"
+      ]
+    ]
+  },
+  {
+    "id": "mqtt_out_ota",
+    "type": "mqtt out",
+    "z": "tab_api",
+    "name": "Publish esp32/ota_trigger",
+    "topic": "esp32/ota_trigger",
+    "qos": "1",
+    "retain": "false",
+    "respTopic": "",
+    "contentType": "",
+    "userProps": "",
+    "correl": "",
+    "expiry": "",
+    "broker": "cfg_mqtt_broker",
+    "x": 750,
+    "y": 580,
+    "wires": []
+  },
+  {
+    "id": "http_res_common",
+    "type": "http response",
+    "z": "tab_api",
+    "name": "JSON HTTP Response",
+    "statusCode": "",
+    "headers": {
+      "Content-Type": "application/json; charset=utf-8"
+    },
+    "x": 1140,
+    "y": 280,
+    "wires": []
+  },
+  {
+    "id": "catch_api_err",
+    "type": "catch",
+    "z": "tab_api",
+    "name": "Catch API / InfluxDB Errors",
+    "scope": null,
+    "uncaught": false,
+    "x": 650,
+    "y": 460,
+    "wires": [
+      [
+        "fn_api_error_reply"
+      ]
+    ]
+  },
+  {
+    "id": "fn_api_error_reply",
+    "type": "function",
+    "z": "tab_api",
+    "name": "Return Clean JSON 500",
+    "func": "if (!msg.res) {\n    return null;\n}\nmsg.statusCode = 500;\nmsg.payload = {\n    ok: false,\n    error: (msg.error && msg.error.message) ? msg.error.message : 'Internal backend error'\n};\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 910,
+    "y": 460,
+    "wires": [
+      [
+        "http_res_common"
+      ]
+    ]
+  },
+  {
+    "id": "sim_state_0",
+    "type": "inject",
+    "z": "tab_simulator",
+    "name": "Simulate State 0 (Normal)",
+    "props": [
+      {
+        "p": "payload"
+      },
+      {
+        "p": "topic",
+        "vt": "str"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "lab_main_s3/telemetry",
+    "payload": "{\"node\":\"lab_main_s3\",\"state\":0,\"temp\":25.4,\"humidity\":56.8,\"pressure\":1011.2,\"tvoc\":42,\"eco2\":415,\"flame\":0,\"presence\":true,\"distance_cm\":118,\"uptime_s\":3600}",
+    "payloadType": "json",
+    "x": 190,
+    "y": 100,
+    "wires": [
+      [
+        "mqtt_out_sim"
+      ]
+    ]
+  },
+  {
+    "id": "sim_state_1",
+    "type": "inject",
+    "z": "tab_simulator",
+    "name": "Simulate State 1 (Warning - Gas Leak)",
+    "props": [
+      {
+        "p": "payload"
+      },
+      {
+        "p": "topic",
+        "vt": "str"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "lab_main_s3/telemetry",
+    "payload": "{\"node\":\"lab_main_s3\",\"state\":1,\"temp\":27.8,\"humidity\":54.2,\"pressure\":1010.9,\"tvoc\":720,\"eco2\":910,\"flame\":0,\"presence\":true,\"distance_cm\":95,\"uptime_s\":3660}",
+    "payloadType": "json",
+    "x": 220,
+    "y": 160,
+    "wires": [
+      [
+        "mqtt_out_sim"
+      ]
+    ]
+  },
+  {
+    "id": "sim_state_2",
+    "type": "inject",
+    "z": "tab_simulator",
+    "name": "Simulate State 2 (Critical - Toxic Leak)",
+    "props": [
+      {
+        "p": "payload"
+      },
+      {
+        "p": "topic",
+        "vt": "str"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "lab_main_s3/telemetry",
+    "payload": "{\"node\":\"lab_main_s3\",\"state\":2,\"temp\":29.1,\"humidity\":52.0,\"pressure\":1010.5,\"tvoc\":1850,\"eco2\":2140,\"flame\":0,\"presence\":true,\"distance_cm\":80,\"uptime_s\":3720}",
+    "payloadType": "json",
+    "x": 220,
+    "y": 220,
+    "wires": [
+      [
+        "mqtt_out_sim"
+      ]
+    ]
+  },
+  {
+    "id": "sim_state_3",
+    "type": "inject",
+    "z": "tab_simulator",
+    "name": "Simulate State 3 (Emergency - Fire)",
+    "props": [
+      {
+        "p": "payload"
+      },
+      {
+        "p": "topic",
+        "vt": "str"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "lab_main_s3/telemetry",
+    "payload": "{\"node\":\"lab_main_s3\",\"state\":3,\"temp\":54.6,\"humidity\":34.1,\"pressure\":1009.4,\"tvoc\":1420,\"eco2\":1680,\"flame\":1,\"presence\":true,\"distance_cm\":145,\"uptime_s\":3780}",
+    "payloadType": "json",
+    "x": 210,
+    "y": 280,
+    "wires": [
+      [
+        "mqtt_out_sim"
+      ]
+    ]
+  },
+  {
+    "id": "sim_state_4",
+    "type": "inject",
+    "z": "tab_simulator",
+    "name": "Simulate State 4 (Sensor Glitch)",
+    "props": [
+      {
+        "p": "payload"
+      },
+      {
+        "p": "topic",
+        "vt": "str"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "lab_main_s3/telemetry",
+    "payload": "{\"node\":\"lab_main_s3\",\"state\":4,\"temp\":24.9,\"humidity\":58.0,\"pressure\":1011.4,\"tvoc\":55,\"eco2\":420,\"flame\":1,\"presence\":false,\"distance_cm\":0,\"uptime_s\":3840}",
+    "payloadType": "json",
+    "x": 200,
+    "y": 340,
+    "wires": [
+      [
+        "mqtt_out_sim"
+      ]
+    ]
+  },
+  {
+    "id": "mqtt_out_sim",
+    "type": "mqtt out",
+    "z": "tab_simulator",
+    "name": "Publish to Mosquitto",
+    "topic": "",
+    "qos": "1",
+    "retain": "false",
+    "respTopic": "",
+    "contentType": "",
+    "userProps": "",
+    "correl": "",
+    "expiry": "",
+    "broker": "cfg_mqtt_broker",
+    "x": 540,
+    "y": 220,
+    "wires": []
+  }
+]

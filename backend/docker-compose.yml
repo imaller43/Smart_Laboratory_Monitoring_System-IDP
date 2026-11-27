@@ -1,0 +1,157 @@
+services:
+  # ==========================================================================
+  # 1. Eclipse Mosquitto 2.0 — Ultra-Light MQTT Broker (~10 MB RAM)
+  #    Internal TCP :1883 (Node-RED) + WebSocket :8083 /mqtt (Cloudflare -> ESP32)
+  # ==========================================================================
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: lab_mosquitto
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Asia/Kuala_Lumpur}
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./mosquitto/acl.conf:/mosquitto/config/acl.conf:ro
+      - ./mosquitto/passwd:/mosquitto/config/passwd:ro
+      - ./data/mosquitto/data:/mosquitto/data
+    # Bound to localhost ONLY (zero public Azure NSG exposure; Cloudflare uses Docker DNS)
+    ports:
+      - "127.0.0.1:1883:1883"
+      - "127.0.0.1:8083:8083"
+    networks:
+      - lab_net
+    mem_limit: 128m
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 1883 && nc -z 127.0.0.1 8083 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ==========================================================================
+  # 2. InfluxDB v2.7 — Time-Series Database (Memory-tuned for 1 GiB Azure VM)
+  # ==========================================================================
+  influxdb:
+    image: influxdb:2.7
+    container_name: lab_influxdb
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Asia/Kuala_Lumpur}
+      # Soft Go GC memory cap so InfluxDB stays fast & avoids heavy swap thrashing
+      GOMEMLIMIT: 384MiB
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUXDB_ADMIN_USER:-admin}
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUXDB_ADMIN_PASSWORD:?Set INFLUXDB_ADMIN_PASSWORD in .env}
+      DOCKER_INFLUXDB_INIT_ORG: ${INFLUXDB_ORG:-idp-lab}
+      DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUXDB_BUCKET:-lab_safety}
+      DOCKER_INFLUXDB_INIT_RETENTION: ${INFLUXDB_RETENTION:-90d}
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUXDB_ADMIN_TOKEN:?Set INFLUXDB_ADMIN_TOKEN in .env}
+    volumes:
+      - ./data/influxdb/data:/var/lib/influxdb2
+      - ./data/influxdb/config:/etc/influxdb2
+    # Localhost-only bind for SSH tunneling / local dev
+    ports:
+      - "127.0.0.1:8086:8086"
+    networks:
+      - lab_net
+    mem_limit: 512m
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # ==========================================================================
+  # 3. Node-RED 4.0 — Ingestion, InfluxDB v2, WebSockets, REST API, TG & FCM
+  # ==========================================================================
+  nodered:
+    build:
+      context: ./nodered
+      dockerfile: Dockerfile
+    container_name: lab_nodered
+    restart: unless-stopped
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+      influxdb:
+        condition: service_healthy
+    environment:
+      TZ: ${TZ:-Asia/Kuala_Lumpur}
+      NODE_PATH: /usr/src/node-red/node_modules
+      # Keep V8 heap bounded cleanly on a 1 GiB VM
+      NODE_OPTIONS: --max-old-space-size=256
+      NODERED_ADMIN_USER: ${NODERED_ADMIN_USER:-admin}
+      NODERED_ADMIN_PASSWORD: ${NODERED_ADMIN_PASSWORD:-}
+      NODERED_ADMIN_PASSWORD_HASH: ${NODERED_ADMIN_PASSWORD_HASH:-}
+      NODERED_CREDENTIAL_SECRET: ${NODERED_CREDENTIAL_SECRET:?Set NODERED_CREDENTIAL_SECRET in .env}
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+      API_ADMIN_KEY: ${API_ADMIN_KEY:-}
+      INFLUXDB_ORG: ${INFLUXDB_ORG:-idp-lab}
+      INFLUXDB_BUCKET: ${INFLUXDB_BUCKET:-lab_safety}
+      INFLUXDB_TOKEN: ${INFLUXDB_ADMIN_TOKEN}
+      MQTT_NODERED_USER: ${MQTT_NODERED_USER:-nodered_backend}
+      MQTT_NODERED_PASS: ${MQTT_NODERED_PASS}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+      FCM_TOPIC: ${FCM_TOPIC:-lab-alerts}
+      FCM_SERVICE_ACCOUNT_PATH: ${FCM_SERVICE_ACCOUNT_PATH:-/data/secrets/firebase-service-account.json}
+      FRONTEND_DASHBOARD_URL: ${FRONTEND_DASHBOARD_URL:-https://lab-api.ikmaliman.my}
+    volumes:
+      - ./nodered:/data
+    # Localhost-only bind for SSH tunneling / local dev
+    ports:
+      - "127.0.0.1:1880:1880"
+    networks:
+      - lab_net
+    mem_limit: 384m
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:1880/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 25s
+
+  # ==========================================================================
+  # 4. Cloudflare Zero Trust Tunnel (ikmaliman.my)
+  # ==========================================================================
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: lab_cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TZ: ${TZ:-Asia/Kuala_Lumpur}
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:?Set CLOUDFLARE_TUNNEL_TOKEN in .env}
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+      nodered:
+        condition: service_healthy
+    networks:
+      - lab_net
+    mem_limit: 128m
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  lab_net:
+    driver: bridge
