@@ -29,7 +29,7 @@
 #include <WiFiClientSecure.h>
 #include <Wire.h>
 
-#define FIRMWARE_VERSION 1.2f
+#define FIRMWARE_VERSION 1.3f
 float currentFsVersion = 1.0f;
 
 // ─── WebSocket Bridge for Cloud MQTT (WS / WSS) ─────────────────────────────
@@ -249,6 +249,19 @@ uint32_t getAlertIntervalMs() {
   return tgConfig.alertEveryVal * 60000UL; // default: minutes
 }
 
+// Calculate absolute humidity [mg/m^3] with approximation formula from Sensirion SGP30 datasheet
+uint32_t getAbsoluteHumidity(float temperature, float humidity) {
+  const float absoluteHumidity =
+      216.7f * ((humidity / 100.0f) * 6.112f *
+                exp((17.62f * temperature) / (243.12f + temperature)) /
+                (273.15f + temperature)); // [g/m^3]
+  const uint32_t absoluteHumidityScaled =
+      static_cast<uint32_t>(1000.0f * absoluteHumidity); // [mg/m^3]
+  return absoluteHumidityScaled;
+}
+
+bool sgpBaselineLoaded = false;
+
 void loadSgpBaseline() {
   if (!sgpReady || !LittleFS.exists("/baseline.txt"))
     return;
@@ -260,11 +273,26 @@ void loadSgpBaseline() {
   uint32_t eco2_base = 0, tvoc_base = 0;
   if (sscanf(line.c_str(), "%lx,%lx", &eco2_base, &tvoc_base) == 2) {
     sgp.setIAQBaseline((uint16_t)eco2_base, (uint16_t)tvoc_base);
+    sgpBaselineLoaded = true;
   }
 }
 
-void saveSgpBaseline() {
+void clearStaleSgpBaseline() {
   if (!sgpReady)
+    return;
+  detachInterrupt(digitalPinToInterrupt(PIN_FLAME));
+  if (LittleFS.exists("/baseline.txt")) {
+    LittleFS.remove("/baseline.txt");
+  }
+  attachInterrupt(digitalPinToInterrupt(PIN_FLAME), onFlameISR, CHANGE);
+  sgp.IAQinit();
+  sgpBaselineLoaded = false;
+}
+
+void saveSgpBaseline() {
+  // Only save baseline when in clean air (State 0 Normal and TVOC < 200 ppb)
+  if (!sgpReady || latestSnapshot.state != STATE_NORMAL ||
+      latestSnapshot.tvoc >= 200)
     return;
   uint16_t eco2_base = 0, tvoc_base = 0;
   if (!sgp.getIAQBaseline(&eco2_base, &tvoc_base))
@@ -918,8 +946,10 @@ void updateOledDisplay(const SensorSnapshot &snap) {
 void sensorAndSafetyTask(void *pv) {
   unsigned long lastPollMs = 0;
   unsigned long lastPublishMs = 0;
+  unsigned long lastHumidityCompMs = 0;
   float prevTemp = 25.0f;
   bool prevTempInitialized = false;
+  bool baselineValidated = false;
   SafetyState currentState = STATE_NORMAL;
 
   // Running sum/count for Mode A (3-minute averaging in States 0 & 4)
@@ -967,10 +997,37 @@ void sensorAndSafetyTask(void *pv) {
             h = rh;
           if (!isnan(rp))
             p = rp;
+
+          // Feed BME280 Absolute Humidity Compensation to SGP30 every 30 seconds
+          if (sgpReady && (lastHumidityCompMs == 0 ||
+                           (now - lastHumidityCompMs >= 30000UL))) {
+            lastHumidityCompMs = now;
+            sgp.setHumidity(getAbsoluteHumidity(t, h));
+          }
         }
         if (sgpReady && sgp.IAQmeasure()) {
-          tvoc = sgp.TVOC;
-          eco2 = sgp.eCO2;
+          // 1) First 20 seconds after cold boot: allow SGP30 MOX heater to burn off moisture
+          if (now < 20000UL) {
+            tvoc = 0;
+            eco2 = 400;
+          } else {
+            // 2) At 20s mark: if an old (>1 week) baseline.txt caused a false spike (>= 400 ppb),
+            //    automatically purge the stale baseline and re-zero the SGP30 via IAQinit()
+            if (!baselineValidated) {
+              baselineValidated = true;
+              if (sgpBaselineLoaded && sgp.TVOC >= 400) {
+                clearStaleSgpBaseline();
+                tvoc = 0;
+                eco2 = 400;
+              } else {
+                tvoc = sgp.TVOC;
+                eco2 = sgp.eCO2;
+              }
+            } else {
+              tvoc = sgp.TVOC;
+              eco2 = sgp.eCO2;
+            }
+          }
         }
         sumTemp += t;
         sumTvoc += tvoc;
