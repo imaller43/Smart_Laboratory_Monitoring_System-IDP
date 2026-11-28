@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sensor Value - Real-time IoT Dashboard</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Paho MQTT client (for live broker connections) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-theme">
+  <div class="dashboard-container">
+    <!-- Top Header -->
+    <header class="dashboard-header">
+      <div class="header-left">
+        <div class="brand-title">
+          <i class="fa-solid fa-chart-line brand-icon"></i>
+          <h1>Sensor Value</h1>
+        </div>
+        <div class="connection-badges">
+          <span class="badge badge-mqtt" id="mqttStatusBadge">
+            <span class="status-dot"></span>
+            <span class="status-text">MQTT Connected</span>
+          </span>
+          <span class="badge badge-db" id="dbStatusBadge">
+            <span class="status-dot"></span>
+            <span class="status-text">DB Connected</span>
+          </span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <!-- Live Timestamp -->
+        <div class="timestamp-display" id="liveTimestamp">
+          Thursday, September 24, 2026 | 5:56:46 PM
+        </div>
+
+        <div class="header-controls">
+          <!-- Notification Bell -->
+          <button class="icon-btn" id="notificationsBtn" title="Alerts & Notifications">
+            <i class="fa-regular fa-bell"></i>
+            <span class="notification-indicator"></span>
+          </button>
+
+          <!-- Time Range Selector -->
+          <div class="dropdown-container">
+            <button class="dropdown-btn" id="timeRangeBtn">
+              <i class="fa-regular fa-clock"></i>
+              <span id="selectedRangeText">Past 1h</span>
+              <i class="fa-solid fa-chevron-down caret-icon"></i>
+            </button>
+            <div class="dropdown-menu" id="timeRangeMenu">
+              <div class="dropdown-item active" data-range="1h">Past 1h</div>
+              <div class="dropdown-item" data-range="6h">Past 6h</div>
+              <div class="dropdown-item" data-range="24h">Past 24h</div>
+              <div class="dropdown-item" data-range="7d">Past 7d</div>
+            </div>
+          </div>
+
+          <!-- Theme Toggle (Light / Dark) -->
+          <button class="icon-btn" id="themeToggleBtn" title="Toggle Theme">
+            <i class="fa-regular fa-sun" id="themeIcon"></i>
+          </button>
+
+          <!-- Simulation / Live Mode Toggle -->
+          <button class="pill-btn" id="modeToggleBtn" title="Toggle Live Simulation / Real Broker">
+            <i class="fa-solid fa-satellite-dish"></i>
+            <span id="modeLabel">SIMULATED</span>
+          </button>
+
+          <!-- Settings / Broker Config Modal Trigger -->
+          <button class="icon-btn" id="settingsBtn" title="MQTT Settings">
+            <i class="fa-solid fa-gear"></i>
+          </button>
+
+          <!-- User Avatar -->
+          <div class="user-avatar" title="Admin User">
+            <i class="fa-regular fa-user"></i>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Sub-header Room Selection Tabs -->
+    <nav class="room-nav">
+      <button class="room-tab active" data-room="design">DESIGN ROOM</button>
+      <button class="room-tab" data-room="room2">ROOM 2</button>
+      <button class="room-tab" data-room="room3">ROOM 3</button>
+    </nav>
+
+    <!-- GPIO Control Switches Section -->
+    <section class="dashboard-section gpio-section">
+      <h2 class="section-title">GPIO CONTROL SWITCHES</h2>
+      <div class="gpio-grid">
+        <!-- Switch 1: FAN -->
+        <div class="gpio-card">
+          <span class="gpio-label">FAN</span>
+          <div class="toggle-switch-wrapper">
+            <label class="toggle-switch">
+              <input type="checkbox" id="switchFan">
+              <span class="toggle-slider">
+                <span class="toggle-status-text">OFF</span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Switch 2: INTERRUPT -->
+        <div class="gpio-card">
+          <span class="gpio-label">INTERRUPT</span>
+          <div class="toggle-switch-wrapper">
+            <label class="toggle-switch">
+              <input type="checkbox" id="switchInterrupt">
+              <span class="toggle-slider">
+                <span class="toggle-status-text">OFF</span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Switch 3: LIGHT -->
+        <div class="gpio-card">
+          <span class="gpio-label">LIGHT</span>
+          <div class="toggle-switch-wrapper">
+            <label class="toggle-switch">
+              <input type="checkbox" id="switchLight">
+              <span class="toggle-slider">
+                <span class="toggle-status-text">OFF</span>
+              </span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Gauges Row -->
+    <section class="dashboard-section gauges-section">
+      <div class="gauges-grid">
+        <!-- Gauge 1: Humidity -->
+        <div class="metric-card gauge-card" id="humidityCard">
+          <div class="metric-card-header">
+            <div class="metric-name">
+              <span class="dot-indicator dot-humidity"></span>
+              <span>HUMIDITY</span>
+            </div>
+            <div class="live-pill">
+              <span>LIVE</span>
+              <span class="live-pulse"></span>
+            </div>
+          </div>
+          <div class="gauge-display">
+            <div class="gauge-svg-container" id="humidityGaugeContainer">
+              <!-- SVG Gauge dynamically rendered -->
+            </div>
+            <div class="gauge-value" id="humidityValue">50.00 %</div>
+          </div>
+        </div>
+
+        <!-- Gauge 2: Temperature -->
+        <div class="metric-card gauge-card" id="temperatureCard">
+          <div class="metric-card-header">
+            <div class="metric-name">
+              <span class="dot-indicator dot-temp"></span>
+              <span>TEMPERATURE</span>
+            </div>
+            <div class="live-pill">
+              <span>LIVE</span>
+              <span class="live-pulse"></span>
+            </div>
+          </div>
+          <div class="gauge-display">
+            <div class="gauge-svg-container" id="temperatureGaugeContainer">
+              <!-- SVG Gauge dynamically rendered -->
+            </div>
+            <div class="gauge-value" id="temperatureValue">20.20 °C</div>
+          </div>
+        </div>
+
+        <!-- Gauge 3: Light Density -->
+        <div class="metric-card gauge-card" id="lightDensityCard">
+          <div class="metric-card-header">
+            <div class="metric-name">
+              <span class="dot-indicator dot-light"></span>
+              <span>LIGHT DENSITY</span>
+            </div>
+            <div class="live-pill">
+              <span>LIVE</span>
+              <span class="live-pulse"></span>
+            </div>
+          </div>
+          <div class="gauge-display">
+            <div class="gauge-svg-container" id="lightGaugeContainer">
+              <!-- SVG Gauge dynamically rendered -->
+            </div>
+            <div class="gauge-value" id="lightValue">275.56 LPD</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Data Tables Row -->
+    <section class="dashboard-section tables-section">
+      <div class="tables-grid">
+        <!-- Table 1: Humidity Log -->
+        <div class="metric-card table-card">
+          <div class="table-header-title">
+            <span class="dot-indicator dot-humidity"></span>
+            <span>HUMIDITY</span>
+          </div>
+          <div class="table-wrapper">
+            <table class="sensor-table">
+              <thead>
+                <tr>
+                  <th class="col-time">Time</th>
+                  <th class="col-val col-humidity">%</th>
+                </tr>
+              </thead>
+              <tbody id="humidityTableBody">
+                <!-- Dynamically populated rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Table 2: Temperature Log -->
+        <div class="metric-card table-card">
+          <div class="table-header-title">
+            <span class="dot-indicator dot-temp"></span>
+            <span>TEMPERATURE</span>
+          </div>
+          <div class="table-wrapper">
+            <table class="sensor-table">
+              <thead>
+                <tr>
+                  <th class="col-time">Time</th>
+                  <th class="col-val col-temp">°C</th>
+                </tr>
+              </thead>
+              <tbody id="temperatureTableBody">
+                <!-- Dynamically populated rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Table 3: Light Density Log -->
+        <div class="metric-card table-card">
+          <div class="table-header-title">
+            <span class="dot-indicator dot-light"></span>
+            <span>LIGHT DENSITY</span>
+          </div>
+          <div class="table-wrapper">
+            <table class="sensor-table">
+              <thead>
+                <tr>
+                  <th class="col-time">Time</th>
+                  <th class="col-val col-light">LPD</th>
+                </tr>
+              </thead>
+              <tbody id="lightTableBody">
+                <!-- Dynamically populated rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Charts Row 1: Real-time dual & single charts -->
+    <section class="dashboard-section charts-section">
+      <div class="charts-grid-two">
+        <!-- Dual Axis: Humidity & Temperature -->
+        <div class="metric-card chart-card">
+          <div class="chart-header">
+            <div class="chart-dual-titles">
+              <span class="chart-title-left">HUMIDITY</span>
+              <span class="chart-title-right">TEMPERATURE</span>
+            </div>
+          </div>
+          <div class="chart-container">
+            <canvas id="dualSensorChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Light Density Real-time Chart -->
+        <div class="metric-card chart-card">
+          <div class="chart-header">
+            <span class="chart-title-single">LIGHT DENSITY</span>
+          </div>
+          <div class="chart-container">
+            <canvas id="lightDensityChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Charts Row 2: Full-width Mean Hourly Data -->
+    <section class="dashboard-section full-chart-section">
+      <div class="metric-card chart-card full-width">
+        <div class="chart-header">
+          <span class="chart-title-single">MEAN HOURLY DATA</span>
+        </div>
+        <div class="chart-container-large">
+          <canvas id="meanHourlyChart"></canvas>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Modal for MQTT / Broker Configuration -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-network-wired"></i> IoT & MQTT Configuration</h3>
+        <button class="modal-close-btn" id="closeSettingsBtn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">Connect this frontend to your live MQTT broker over WebSockets (e.g. Mosquitto, EMQX, HiveMQ) or keep the mock simulator running.</p>
+        <div class="form-group">
+          <label for="brokerHost">WebSocket Broker URL / Host:</label>
+          <input type="text" id="brokerHost" placeholder="broker.emqx.io or test.mosquitto.org" value="broker.emqx.io">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="brokerPort">Port (WS/WSS):</label>
+            <input type="number" id="brokerPort" placeholder="8083 or 8084" value="8084">
+          </div>
+          <div class="form-group">
+            <label for="brokerPath">Path:</label>
+            <input type="text" id="brokerPath" placeholder="/mqtt" value="/mqtt">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="brokerTopic">Sensor Topic Prefix:</label>
+          <input type="text" id="brokerTopic" placeholder="iot/room1/sensors" value="iot/room/sensors">
+        </div>
+        <div class="form-group">
+          <label for="gpioTopic">GPIO Command Topic:</label>
+          <input type="text" id="gpioTopic" placeholder="iot/room1/gpio" value="iot/room/gpio">
+        </div>
+        <div class="form-row">
+          <label class="checkbox-label">
+            <input type="checkbox" id="useSsl" checked> Use SSL/TLS (WSS)
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="saveSimBtn">Use Mock Data Engine</button>
+        <button class="btn btn-primary" id="connectMqttBtn">Connect Live Broker</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
